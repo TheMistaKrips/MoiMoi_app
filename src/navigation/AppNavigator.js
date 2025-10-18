@@ -3,9 +3,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 // Импорт экранов
-import GoogleLoginPage from '../screens/Onboarding/GoogleLoginPage';
 import CompleteOnboardingScreen from '../screens/Onboarding/CompleteOnboardingScreen';
 import HomeScreen from '../screens/Main/HomeScreen';
 import ProfileScreen from '../screens/Main/ProfileScreen';
@@ -17,16 +17,48 @@ import ShopScreen from '../screens/Main/ShopScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Создаем отдельный стек для профиля с настройками
+const ProfileStackNavigator = createNativeStackNavigator();
+
+function ProfileStack() {
+    const { colors, themeColor } = useTheme();
+
+    return (
+        <ProfileStackNavigator.Navigator>
+            <ProfileStackNavigator.Screen
+                name="ProfileMain"
+                component={ProfileScreen}
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <ProfileStackNavigator.Screen
+                name="Settings"
+                component={SettingsScreen}
+                options={{
+                    title: 'Настройки',
+                    headerStyle: {
+                        backgroundColor: themeColor,
+                    },
+                    headerTintColor: 'white',
+                }}
+            />
+        </ProfileStackNavigator.Navigator>
+    );
+}
+
 function MainTabs() {
+    const { colors, themeColor, isDarkMode } = useTheme();
+
     return (
         <Tab.Navigator
             screenOptions={{
-                tabBarActiveTintColor: '#bb69f2',
-                tabBarInactiveTintColor: '#999',
+                tabBarActiveTintColor: themeColor,
+                tabBarInactiveTintColor: colors.textSecondary,
                 tabBarStyle: {
-                    backgroundColor: '#ffffff',
+                    backgroundColor: colors.tabBar,
                     borderTopWidth: 1,
-                    borderTopColor: '#e9ecef',
+                    borderTopColor: colors.tabBarBorder,
                     height: 80,
                     paddingBottom: 40,
                 },
@@ -34,6 +66,10 @@ function MainTabs() {
                     fontSize: 12,
                     fontWeight: '500',
                 },
+                headerStyle: {
+                    backgroundColor: themeColor,
+                },
+                headerTintColor: 'white',
             }}
         >
             <Tab.Screen
@@ -55,10 +91,6 @@ function MainTabs() {
                         <Ionicons name="calendar-outline" size={size} color={color} />
                     ),
                     title: 'Календарь',
-                    headerStyle: {
-                        backgroundColor: '#bb69f2',
-                    },
-                    headerTintColor: 'white',
                 }}
             />
             <Tab.Screen
@@ -69,10 +101,6 @@ function MainTabs() {
                         <Ionicons name="storefront-outline" size={size} color={color} />
                     ),
                     title: 'Магазин',
-                    headerStyle: {
-                        backgroundColor: '#bb69f2',
-                    },
-                    headerTintColor: 'white',
                 }}
             />
             <Tab.Screen
@@ -83,24 +111,17 @@ function MainTabs() {
                         <Ionicons name="chatbubble-outline" size={size} color={color} />
                     ),
                     title: 'Чат',
-                    headerStyle: {
-                        backgroundColor: '#bb69f2',
-                    },
-                    headerTintColor: 'white',
                 }}
             />
             <Tab.Screen
-                name="Profile"
-                component={ProfileScreen}
+                name="ProfileTab"
+                component={ProfileStack}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="person-outline" size={size} color={color} />
                     ),
                     title: 'Профиль',
-                    headerStyle: {
-                        backgroundColor: '#bb69f2',
-                    },
-                    headerTintColor: 'white',
+                    headerShown: false,
                 }}
             />
         </Tab.Navigator>
@@ -123,7 +144,7 @@ function OnboardingStack() {
                 }}
             />
             <Stack.Screen
-                name="Main"
+                name="MainTabs"
                 component={MainTabs}
                 options={{
                     animation: 'slide_from_bottom',
@@ -135,22 +156,18 @@ function OnboardingStack() {
 
 export default function AppNavigator() {
     const [appReady, setAppReady] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
     useEffect(() => {
-        checkAuthState();
+        checkOnboardingState();
     }, []);
 
-    const checkAuthState = async () => {
+    const checkOnboardingState = async () => {
         try {
-            const userLoggedIn = await AsyncStorage.getItem('isLoggedIn');
             const onboardingCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
-
-            setIsLoggedIn(userLoggedIn === 'true');
             setHasCompletedOnboarding(onboardingCompleted === 'true');
         } catch (error) {
-            console.error('Error checking auth state:', error);
+            console.error('Error checking onboarding state:', error);
         } finally {
             setAppReady(true);
         }
@@ -166,15 +183,7 @@ export default function AppNavigator() {
                 headerShown: false,
             }}
         >
-            {!isLoggedIn ? (
-                <Stack.Screen
-                    name="Login"
-                    component={GoogleLoginPage}
-                    options={{
-                        animation: 'fade',
-                    }}
-                />
-            ) : !hasCompletedOnboarding ? (
+            {!hasCompletedOnboarding ? (
                 <Stack.Screen
                     name="Onboarding"
                     component={OnboardingStack}

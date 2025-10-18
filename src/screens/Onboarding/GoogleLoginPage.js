@@ -12,22 +12,8 @@ export default function GoogleLoginPage() {
             // Сохраняем состояние логина
             await AsyncStorage.setItem('isLoggedIn', 'true');
 
-            // Проверяем, завершал ли пользователь онбординг ранее
-            const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
-
-            if (hasCompletedOnboarding === 'true') {
-                // Если онбординг завершен, идем сразу в главное приложение
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Main' }],
-                });
-            } else {
-                // Если онбординг не завершен, идем в онбординг
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Onboarding' }],
-                });
-            }
+            // Переходим сразу на онбординг
+            navigation.navigate('Onboarding');
         } catch (error) {
             console.error('Error saving login state:', error);
         }
@@ -40,7 +26,7 @@ export default function GoogleLoginPage() {
             // Помечаем онбординг как завершенный
             await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
 
-            // Переходим в главное приложение
+            // Переходим в главное приложение через правильный навигатор
             navigation.reset({
                 index: 0,
                 routes: [{ name: 'Main' }],

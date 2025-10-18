@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function CalendarScreen() {
+    const { colors, themeColor } = useTheme();
     const [tasks, setTasks] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [monthData, setMonthData] = useState([]);
@@ -86,7 +88,7 @@ export default function CalendarScreen() {
         const completed = getCompletedTasksForDate(date);
         const total = getTotalTasksForDate(date);
 
-        if (total === 0) return '#f8f9fa';
+        if (total === 0) return colors.background;
         if (completed === total) return '#4CAF50';
         if (completed > 0) return '#FFD93D';
         return '#ff6b6b';
@@ -104,41 +106,49 @@ export default function CalendarScreen() {
 
     const weekDays = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
+    const containerStyle = { backgroundColor: colors.background };
+    const headerStyle = { backgroundColor: colors.card };
+    const weekDaysStyle = { backgroundColor: colors.card };
+    const calendarGridStyle = { backgroundColor: colors.card };
+    const detailsContainerStyle = { backgroundColor: colors.background };
+    const statsContainerStyle = { backgroundColor: colors.card };
+    const tasksListStyle = { backgroundColor: colors.card };
+
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, containerStyle]}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, headerStyle]}>
                 <TouchableOpacity onPress={() => navigateMonth(-1)} style={styles.navButton}>
-                    <Ionicons name="chevron-back" size={24} color="#333" />
+                    <Ionicons name="chevron-back" size={24} color={colors.text} />
                 </TouchableOpacity>
 
                 <View style={styles.dateContainer}>
-                    <Text style={styles.monthText}>
+                    <Text style={[styles.monthText, { color: colors.text }]}>
                         {selectedDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
                     </Text>
                 </View>
 
                 <TouchableOpacity onPress={() => navigateMonth(1)} style={styles.navButton}>
-                    <Ionicons name="chevron-forward" size={24} color="#333" />
+                    <Ionicons name="chevron-forward" size={24} color={colors.text} />
                 </TouchableOpacity>
             </View>
 
             {/* Week Days */}
-            <View style={styles.weekDays}>
+            <View style={[styles.weekDays, weekDaysStyle]}>
                 {weekDays.map((day, index) => (
-                    <Text key={index} style={styles.weekDayText}>{day}</Text>
+                    <Text key={index} style={[styles.weekDayText, { color: colors.textSecondary }]}>{day}</Text>
                 ))}
             </View>
 
             {/* Calendar Grid */}
-            <View style={styles.calendarGrid}>
+            <View style={[styles.calendarGrid, calendarGridStyle]}>
                 {monthData.map((date, index) => (
                     <TouchableOpacity
                         key={index}
                         style={[
                             styles.dayCell,
-                            isToday(date) && styles.todayCell,
-                            isSelected(date) && styles.selectedCell
+                            isToday(date) && [styles.todayCell, { backgroundColor: colors.background }],
+                            isSelected(date) && [styles.selectedCell, { backgroundColor: themeColor }]
                         ]}
                         onPress={() => date && setSelectedDate(date)}
                         disabled={!date}
@@ -146,70 +156,72 @@ export default function CalendarScreen() {
                         <View style={[styles.dayIndicator, { backgroundColor: getDayColor(date) }]}>
                             <Text style={[
                                 styles.dayText,
-                                isToday(date) && styles.todayText,
+                                { color: colors.text },
+                                isToday(date) && [styles.todayText, { color: themeColor }],
                                 isSelected(date) && styles.selectedText
                             ]}>
                                 {date ? date.getDate() : ''}
                             </Text>
                         </View>
                         {date && getTotalTasksForDate(date) > 0 && (
-                            <View style={styles.taskDot} />
+                            <View style={[styles.taskDot, { backgroundColor: themeColor }]} />
                         )}
                     </TouchableOpacity>
                 ))}
             </View>
 
             {/* Selected Date Details */}
-            <ScrollView style={styles.detailsContainer}>
-                <Text style={styles.selectedDateText}>{formatDate(selectedDate)}</Text>
+            <ScrollView style={[styles.detailsContainer, detailsContainerStyle]}>
+                <Text style={[styles.selectedDateText, { color: colors.text }]}>{formatDate(selectedDate)}</Text>
 
-                <View style={styles.statsContainer}>
+                <View style={[styles.statsContainer, statsContainerStyle]}>
                     <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>
+                        <Text style={[styles.statNumber, { color: themeColor }]}>
                             {getCompletedTasksForDate(selectedDate)}
                         </Text>
-                        <Text style={styles.statLabel}>Выполнено</Text>
+                        <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Выполнено</Text>
                     </View>
                     <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>
+                        <Text style={[styles.statNumber, { color: themeColor }]}>
                             {getTotalTasksForDate(selectedDate)}
                         </Text>
-                        <Text style={styles.statLabel}>Всего задач</Text>
+                        <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Всего задач</Text>
                     </View>
                     <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>
+                        <Text style={[styles.statNumber, { color: themeColor }]}>
                             {getTotalTasksForDate(selectedDate) > 0 ?
                                 Math.round((getCompletedTasksForDate(selectedDate) / getTotalTasksForDate(selectedDate)) * 100) : 0
                             }%
                         </Text>
-                        <Text style={styles.statLabel}>Прогресс</Text>
+                        <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Прогресс</Text>
                     </View>
                 </View>
 
-                <View style={styles.tasksList}>
+                <View style={[styles.tasksList, tasksListStyle]}>
                     {getTasksForDate(selectedDate).length === 0 ? (
                         <View style={styles.emptyState}>
-                            <Ionicons name="calendar-outline" size={64} color="#bb69f2" />
-                            <Text style={styles.emptyText}>Нет задач на этот день</Text>
-                            <Text style={styles.emptySubtext}>
+                            <Ionicons name="calendar-outline" size={64} color={themeColor} />
+                            <Text style={[styles.emptyText, { color: colors.text }]}>Нет задач на этот день</Text>
+                            <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
                                 Задачи, созданные на эту дату, появятся здесь
                             </Text>
                         </View>
                     ) : (
                         getTasksForDate(selectedDate).map((task) => (
-                            <View key={task.id} style={styles.taskItem}>
+                            <View key={task.id} style={[styles.taskItem, { borderBottomColor: colors.border }]}>
                                 <View style={[
                                     styles.statusIndicator,
                                     task.completed ? styles.completed : styles.pending
                                 ]} />
                                 <Text style={[
                                     styles.taskText,
-                                    task.completed && styles.taskTextCompleted
+                                    { color: colors.text },
+                                    task.completed && [styles.taskTextCompleted, { color: colors.textSecondary }]
                                 ]}>
                                     {task.text}
                                 </Text>
                                 <View style={styles.taskMeta}>
-                                    <Text style={styles.taskTime}>
+                                    <Text style={[styles.taskTime, { color: colors.textSecondary }]}>
                                         {new Date(task.createdAt).toLocaleTimeString('ru-RU', {
                                             hour: '2-digit',
                                             minute: '2-digit'
@@ -231,14 +243,12 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8f9fa',
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 20,
-        backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#e9ecef',
     },
@@ -252,12 +262,10 @@ const styles = StyleSheet.create({
     monthText: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
         textAlign: 'center',
     },
     weekDays: {
         flexDirection: 'row',
-        backgroundColor: 'white',
         paddingVertical: 10,
     },
     weekDayText: {
@@ -265,12 +273,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 12,
         fontWeight: '500',
-        color: '#666',
     },
     calendarGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        backgroundColor: 'white',
         padding: 10,
     },
     dayCell: {
@@ -281,11 +287,9 @@ const styles = StyleSheet.create({
         padding: 2,
     },
     todayCell: {
-        backgroundColor: '#f0e6ff',
         borderRadius: 8,
     },
     selectedCell: {
-        backgroundColor: '#bb69f2',
         borderRadius: 8,
     },
     dayIndicator: {
@@ -298,10 +302,8 @@ const styles = StyleSheet.create({
     dayText: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#333',
     },
     todayText: {
-        color: '#bb69f2',
         fontWeight: 'bold',
     },
     selectedText: {
@@ -314,7 +316,6 @@ const styles = StyleSheet.create({
         width: 4,
         height: 4,
         borderRadius: 2,
-        backgroundColor: '#bb69f2',
     },
     detailsContainer: {
         flex: 1,
@@ -323,14 +324,12 @@ const styles = StyleSheet.create({
     selectedDateText: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
         marginBottom: 20,
         textAlign: 'center',
     },
     statsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        backgroundColor: 'white',
         padding: 20,
         borderRadius: 16,
         marginBottom: 20,
@@ -346,16 +345,13 @@ const styles = StyleSheet.create({
     statNumber: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#bb69f2',
         marginBottom: 5,
     },
     statLabel: {
         fontSize: 12,
-        color: '#666',
         fontWeight: '500',
     },
     tasksList: {
-        backgroundColor: 'white',
         borderRadius: 16,
         overflow: 'hidden',
     },
@@ -364,7 +360,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
     },
     statusIndicator: {
         width: 8,
@@ -381,18 +376,15 @@ const styles = StyleSheet.create({
     taskText: {
         flex: 1,
         fontSize: 16,
-        color: '#333',
     },
     taskTextCompleted: {
         textDecorationLine: 'line-through',
-        color: '#999',
     },
     taskMeta: {
         alignItems: 'flex-end',
     },
     taskTime: {
         fontSize: 12,
-        color: '#999',
         marginBottom: 4,
     },
     emptyState: {
@@ -402,13 +394,11 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 18,
-        color: '#666',
         marginTop: 16,
         fontWeight: '500',
     },
     emptySubtext: {
         fontSize: 14,
-        color: '#999',
         marginTop: 8,
         textAlign: 'center',
     },

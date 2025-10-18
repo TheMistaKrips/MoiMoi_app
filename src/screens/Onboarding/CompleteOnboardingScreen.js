@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -32,6 +33,7 @@ const defaultHabits = [
 
 export default function CompleteOnboardingScreen() {
     const navigation = useNavigation();
+    const { updateUserData } = useTheme();
     const [currentStep, setCurrentStep] = useState(0);
     const [userData, setUserData] = useState({
         name: '',
@@ -50,18 +52,20 @@ export default function CompleteOnboardingScreen() {
 
     const ageScrollRef = useRef(null);
     const weightScrollRef = useRef(null);
+    const heightScrollRef = useRef(null);
 
     const steps = [
         { title: 'Добро пожаловать! 👋', subtitle: 'Создадим твой идеальный профиль' },
         { title: 'Как тебя зовут? ✨', subtitle: 'Как мы можем к тебе обращаться?' },
         { title: 'Твой возраст 🎂', subtitle: 'Выбери свой возраст' },
         { title: 'Твой вес 💪', subtitle: 'Мы сделаем тебе комплимент!' },
+        { title: 'Твой рост 📏', subtitle: 'Для точных расчетов и рекомендаций' },
         { title: 'Выбери привычки 🎯', subtitle: 'Что будем улучшать вместе?' },
         { title: 'Твой MoiMoi 🌟', subtitle: 'Как назовешь своего помощника?' },
         { title: 'Готово! 🎉', subtitle: 'Начинаем наше путешествие!' }
     ];
 
-    const updateUserData = (field, value) => {
+    const updateUserDataState = (field, value) => {
         setUserData(prev => ({
             ...prev,
             [field]: value
@@ -117,7 +121,7 @@ export default function CompleteOnboardingScreen() {
         });
 
         if (!result.canceled) {
-            updateUserData('avatar', result.assets[0].uri);
+            updateUserDataState('avatar', result.assets[0].uri);
         }
     };
 
@@ -127,7 +131,7 @@ export default function CompleteOnboardingScreen() {
         );
 
         const selectedHabits = updatedHabits.filter(h => h.selected);
-        updateUserData('habits', selectedHabits);
+        updateUserDataState('habits', selectedHabits);
     };
 
     const getWeightCompliment = (weight) => {
@@ -146,6 +150,26 @@ export default function CompleteOnboardingScreen() {
         if (age < 45) return "Опыт и мудрость! 📚";
         if (age < 55) return "Золотой возраст! 🏆";
         return "Жизненная мудрость! 👑";
+    };
+
+    const getHeightComment = (height) => {
+        if (height < 160) return "Изящная и грациозная! 🦋";
+        if (height < 170) return "Идеальные пропорции! 🌸";
+        if (height < 180) return "Статная и величественная! 👑";
+        if (height < 190) return "Впечатляющий рост! 🌟";
+        return "Великолепная стать! 🏔️";
+    };
+
+    const calculateBMI = (weight, height) => {
+        const heightInMeters = height / 100;
+        return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+    };
+
+    const getBMICategory = (bmi) => {
+        if (bmi < 18.5) return { category: 'Недостаточный вес', color: '#FF6B6B', advice: 'Рекомендуем увеличить калорийность питания' };
+        if (bmi < 25) return { category: 'Нормальный вес', color: '#4CAF50', advice: 'Отличная форма! Продолжайте в том же духе' };
+        if (bmi < 30) return { category: 'Избыточный вес', color: '#FFA500', advice: 'Рекомендуем больше физической активности' };
+        return { category: 'Ожирение', color: '#FF6B6B', advice: 'Рекомендуем консультацию специалиста' };
     };
 
     const AgeSelector = () => {
@@ -177,7 +201,7 @@ export default function CompleteOnboardingScreen() {
                                     userData.age === age && styles.pickerItemSelected
                                 ]}
                                 onPress={() => {
-                                    updateUserData('age', age);
+                                    updateUserDataState('age', age);
                                     scrollToAge(age);
                                 }}
                             >
@@ -231,7 +255,7 @@ export default function CompleteOnboardingScreen() {
                                     userData.weight === weight && styles.pickerItemSelected
                                 ]}
                                 onPress={() => {
-                                    updateUserData('weight', weight);
+                                    updateUserDataState('weight', weight);
                                     scrollToWeight(weight);
                                 }}
                             >
@@ -256,6 +280,82 @@ export default function CompleteOnboardingScreen() {
         );
     };
 
+    const HeightSelector = () => {
+        const heights = Array.from({ length: 71 }, (_, i) => i + 140);
+
+        const scrollToHeight = (height) => {
+            const index = heights.indexOf(height);
+            if (heightScrollRef.current && index !== -1) {
+                heightScrollRef.current.scrollTo({ y: index * 60, animated: true });
+            }
+        };
+
+        return (
+            <View style={styles.selectorContainer}>
+                <View style={styles.pickerContainer}>
+                    <View style={styles.selectionIndicator} />
+                    <ScrollView
+                        ref={heightScrollRef}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.pickerContent}
+                        snapToInterval={60}
+                        decelerationRate="fast"
+                    >
+                        {heights.map((height) => (
+                            <TouchableOpacity
+                                key={height}
+                                style={[
+                                    styles.pickerItem,
+                                    userData.height === height && styles.pickerItemSelected
+                                ]}
+                                onPress={() => {
+                                    updateUserDataState('height', height);
+                                    scrollToHeight(height);
+                                }}
+                            >
+                                <Text style={[
+                                    styles.pickerText,
+                                    userData.height === height && styles.pickerTextSelected
+                                ]}>
+                                    {height}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                </View>
+
+                <View style={[styles.recommendationBox, styles.heightBox]}>
+                    <Ionicons name="trending-up" size={20} color="#4ECDC4" />
+                    <Text style={styles.recommendationText}>
+                        {getHeightComment(userData.height)}
+                    </Text>
+                </View>
+
+                {/* Расчет ИМТ */}
+                {userData.weight > 0 && userData.height > 0 && (
+                    <View style={styles.bmiContainer}>
+                        <Text style={styles.bmiTitle}>Индекс массы тела (ИМТ)</Text>
+                        <Text style={styles.bmiValue}>
+                            {calculateBMI(userData.weight, userData.height)}
+                        </Text>
+                        {(() => {
+                            const bmi = calculateBMI(userData.weight, userData.height);
+                            const bmiCategory = getBMICategory(bmi);
+                            return (
+                                <>
+                                    <Text style={[styles.bmiCategory, { color: bmiCategory.color }]}>
+                                        {bmiCategory.category}
+                                    </Text>
+                                    <Text style={styles.bmiAdvice}>{bmiCategory.advice}</Text>
+                                </>
+                            );
+                        })()}
+                    </View>
+                )}
+            </View>
+        );
+    };
+
     const saveAllData = async () => {
         if (!userData.name.trim()) {
             Alert.alert('Ошибка', 'Пожалуйста, введите ваше имя');
@@ -264,7 +364,11 @@ export default function CompleteOnboardingScreen() {
         }
 
         try {
+            // Сохраняем в AsyncStorage
             await AsyncStorage.setItem('userData', JSON.stringify(userData));
+
+            // Обновляем в контексте темы
+            updateUserData(userData);
 
             const tasks = userData.habits.map(habit => ({
                 id: habit.id,
@@ -323,7 +427,7 @@ export default function CompleteOnboardingScreen() {
                                 style={styles.input}
                                 placeholder="Например, Алексей"
                                 value={userData.name}
-                                onChangeText={(text) => updateUserData('name', text)}
+                                onChangeText={(text) => updateUserDataState('name', text)}
                                 placeholderTextColor="rgba(255,255,255,0.6)"
                                 autoFocus
                             />
@@ -346,6 +450,13 @@ export default function CompleteOnboardingScreen() {
                 );
 
             case 4:
+                return (
+                    <Animated.View style={[styles.stepContent, animatedStyle]}>
+                        <HeightSelector />
+                    </Animated.View>
+                );
+
+            case 5:
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <ScrollView
@@ -396,7 +507,7 @@ export default function CompleteOnboardingScreen() {
                     </Animated.View>
                 );
 
-            case 5:
+            case 6:
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
@@ -419,14 +530,17 @@ export default function CompleteOnboardingScreen() {
                                 style={styles.input}
                                 placeholder="Например, Спарки"
                                 value={userData.moimoiName}
-                                onChangeText={(text) => updateUserData('moimoiName', text)}
+                                onChangeText={(text) => updateUserDataState('moimoiName', text)}
                                 placeholderTextColor="rgba(255,255,255,0.6)"
                             />
                         </View>
                     </Animated.View>
                 );
 
-            case 6:
+            case 7:
+                const bmi = calculateBMI(userData.weight, userData.height);
+                const bmiCategory = getBMICategory(bmi);
+
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <View style={styles.finalStep}>
@@ -451,6 +565,16 @@ export default function CompleteOnboardingScreen() {
                                     <Text style={styles.summaryValue}>{userData.weight} кг</Text>
                                 </View>
                                 <View style={styles.summaryItem}>
+                                    <Text style={styles.summaryLabel}>Рост:</Text>
+                                    <Text style={styles.summaryValue}>{userData.height} см</Text>
+                                </View>
+                                <View style={styles.summaryItem}>
+                                    <Text style={styles.summaryLabel}>ИМТ:</Text>
+                                    <Text style={[styles.summaryValue, { color: bmiCategory.color }]}>
+                                        {bmi} ({bmiCategory.category})
+                                    </Text>
+                                </View>
+                                <View style={styles.summaryItem}>
                                     <Text style={styles.summaryLabel}>Привычки:</Text>
                                     <Text style={styles.summaryValue}>{userData.habits.length} выбрано</Text>
                                 </View>
@@ -471,7 +595,7 @@ export default function CompleteOnboardingScreen() {
     const canProceed = () => {
         switch (currentStep) {
             case 1: return userData.name.trim().length > 0;
-            case 4: return userData.habits.length > 0;
+            case 5: return userData.habits.length > 0;
             default: return true;
         }
     };
@@ -531,7 +655,6 @@ export default function CompleteOnboardingScreen() {
     );
 }
 
-// Стили остаются такими же как в предыдущей версии
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -671,11 +794,17 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.15)',
         padding: 16,
         borderRadius: 16,
+        marginBottom: 20,
     },
     complimentBox: {
         backgroundColor: 'rgba(255,107,107,0.2)',
         borderWidth: 1,
         borderColor: 'rgba(255,107,107,0.3)',
+    },
+    heightBox: {
+        backgroundColor: 'rgba(78,205,196,0.2)',
+        borderWidth: 1,
+        borderColor: 'rgba(78,205,196,0.3)',
     },
     recommendationText: {
         color: 'white',
@@ -683,6 +812,36 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         marginLeft: 10,
         flex: 1,
+    },
+    bmiContainer: {
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        padding: 20,
+        borderRadius: 16,
+        alignItems: 'center',
+        marginTop: 20,
+    },
+    bmiTitle: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    bmiValue: {
+        color: 'white',
+        fontSize: 32,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    bmiCategory: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 10,
+    },
+    bmiAdvice: {
+        color: 'white',
+        fontSize: 14,
+        textAlign: 'center',
+        lineHeight: 18,
     },
     habitsContainer: {
         flex: 1,

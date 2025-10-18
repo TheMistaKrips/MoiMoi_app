@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../../context/ThemeContext';
 
 const MoiMoiResponses = [
     "Привет! Как твои дела? 😊",
@@ -17,6 +18,7 @@ const MoiMoiResponses = [
 ];
 
 export default function ChatScreen() {
+    const { colors, themeColor } = useTheme();
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
     const flatListRef = useRef(null);
@@ -99,16 +101,16 @@ export default function ChatScreen() {
         ]}>
             <View style={[
                 styles.messageBubble,
-                item.isUser ? styles.userBubble : styles.moiMoiBubble
+                item.isUser ? [styles.userBubble, { backgroundColor: themeColor }] : [styles.moiMoiBubble, { backgroundColor: colors.card, borderColor: colors.border }]
             ]}>
                 <Text style={[
                     styles.messageText,
-                    item.isUser ? styles.userMessageText : styles.moiMoiMessageText
+                    item.isUser ? styles.userMessageText : [styles.moiMoiMessageText, { color: colors.text }]
                 ]}>
                     {item.text}
                 </Text>
             </View>
-            <Text style={styles.timestamp}>
+            <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
                 {new Date(item.timestamp).toLocaleTimeString('ru-RU', {
                     hour: '2-digit',
                     minute: '2-digit'
@@ -117,9 +119,13 @@ export default function ChatScreen() {
         </View>
     );
 
+    const containerStyle = { backgroundColor: colors.background };
+    const inputContainerStyle = { backgroundColor: colors.card, borderTopColor: colors.border };
+    const textInputStyle = { backgroundColor: colors.background, borderColor: colors.border, color: colors.text };
+
     return (
         <KeyboardAvoidingView
-            style={styles.container}
+            style={[styles.container, containerStyle]}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
             <FlatList
@@ -128,23 +134,24 @@ export default function ChatScreen() {
                 renderItem={renderMessage}
                 keyExtractor={(item) => item.id}
                 style={styles.messagesList}
-                contentContainerStyle={styles.messagesContent}
+                contentContainerStyle={[styles.messagesContent, { backgroundColor: colors.background }]}
                 onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
 
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, inputContainerStyle]}>
                 <TextInput
-                    style={styles.textInput}
+                    style={[styles.textInput, textInputStyle]}
                     value={inputText}
                     onChangeText={setInputText}
                     placeholder="Напишите сообщение..."
-                    placeholderTextColor="#999"
+                    placeholderTextColor={colors.textSecondary}
                     multiline
                     maxLength={500}
                 />
                 <TouchableOpacity
                     style={[
                         styles.sendButton,
+                        { backgroundColor: themeColor },
                         !inputText.trim() && styles.sendButtonDisabled
                     ]}
                     onPress={sendMessage}
@@ -153,7 +160,7 @@ export default function ChatScreen() {
                     <Ionicons
                         name="send"
                         size={20}
-                        color={inputText.trim() ? "white" : "#ccc"}
+                        color={inputText.trim() ? "white" : colors.textSecondary}
                     />
                 </TouchableOpacity>
             </View>
@@ -164,7 +171,6 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8f9fa',
     },
     messagesList: {
         flex: 1,
@@ -190,14 +196,11 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     userBubble: {
-        backgroundColor: '#bb69f2',
         borderBottomRightRadius: 4,
     },
     moiMoiBubble: {
-        backgroundColor: 'white',
         borderBottomLeftRadius: 4,
         borderWidth: 1,
-        borderColor: '#e9ecef',
     },
     messageText: {
         fontSize: 16,
@@ -211,37 +214,31 @@ const styles = StyleSheet.create({
     },
     timestamp: {
         fontSize: 12,
-        color: '#999',
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'flex-end',
         padding: 16,
-        backgroundColor: 'white',
         borderTopWidth: 1,
-        borderTopColor: '#e9ecef',
     },
     textInput: {
         flex: 1,
         borderWidth: 1,
-        borderColor: '#e9ecef',
         borderRadius: 20,
         paddingHorizontal: 16,
         paddingVertical: 12,
         marginRight: 12,
         maxHeight: 100,
-        backgroundColor: '#f8f9fa',
         fontSize: 16,
     },
     sendButton: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: '#69a4fe',
         justifyContent: 'center',
         alignItems: 'center',
     },
     sendButtonDisabled: {
-        backgroundColor: '#f0f0f0',
+        opacity: 0.5,
     },
 });

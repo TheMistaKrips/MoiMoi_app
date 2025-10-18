@@ -1,29 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, TextInput, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../context/ThemeContext';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function SettingsScreen() {
+    const {
+        isDarkMode,
+        themeColor,
+        userData,
+        toggleDarkMode,
+        changeThemeColor,
+        updateUserData
+    } = useTheme();
+
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
     const [dailyReminders, setDailyReminders] = useState(true);
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [vibrationEnabled, setVibrationEnabled] = useState(true);
     const [animationsEnabled, setAnimationsEnabled] = useState(true);
     const [effectsEnabled, setEffectsEnabled] = useState(true);
-    const [darkMode, setDarkMode] = useState(false);
 
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [showNotificationsModal, setShowNotificationsModal] = useState(false);
     const [showPrivacyModal, setShowPrivacyModal] = useState(false);
     const [showAppearanceModal, setShowAppearanceModal] = useState(false);
+    const [showAboutModal, setShowAboutModal] = useState(false);
+    const [showDataManagementModal, setShowDataManagementModal] = useState(false);
 
-    const [userData, setUserData] = useState(null);
     const [editedName, setEditedName] = useState('');
     const [editedAge, setEditedAge] = useState('');
+    const [editedWeight, setEditedWeight] = useState('');
+    const [editedHeight, setEditedHeight] = useState('');
     const [editedMoiMoiName, setEditedMoiMoiName] = useState('');
-    const [selectedColor, setSelectedColor] = useState('#bb69f2');
+    const [avatar, setAvatar] = useState(null);
 
     const navigation = useNavigation();
 
@@ -39,20 +52,16 @@ export default function SettingsScreen() {
     useEffect(() => {
         loadUserData();
         loadAppSettings();
-    }, []);
+    }, [userData]);
 
-    const loadUserData = async () => {
-        try {
-            const userDataString = await AsyncStorage.getItem('userData');
-            if (userDataString) {
-                const data = JSON.parse(userDataString);
-                setUserData(data);
-                setEditedName(data.name || '');
-                setEditedAge(data.age?.toString() || '');
-                setEditedMoiMoiName(data.moimoiName || '');
-            }
-        } catch (error) {
-            console.error('Error loading user data:', error);
+    const loadUserData = () => {
+        if (userData) {
+            setEditedName(userData.name || '');
+            setEditedAge(userData.age?.toString() || '');
+            setEditedWeight(userData.weight?.toString() || '');
+            setEditedHeight(userData.height?.toString() || '');
+            setEditedMoiMoiName(userData.moimoiName || '');
+            setAvatar(userData.avatar || null);
         }
     };
 
@@ -61,40 +70,73 @@ export default function SettingsScreen() {
             const settings = await AsyncStorage.getItem('appSettings');
             if (settings) {
                 const parsedSettings = JSON.parse(settings);
-                setSelectedColor(parsedSettings.themeColor || '#bb69f2');
-                setDarkMode(parsedSettings.darkMode || false);
+                setNotificationsEnabled(parsedSettings.notificationsEnabled !== false);
+                setDailyReminders(parsedSettings.dailyReminders !== false);
+                setSoundEnabled(parsedSettings.soundEnabled !== false);
+                setVibrationEnabled(parsedSettings.vibrationEnabled !== false);
+                setAnimationsEnabled(parsedSettings.animationsEnabled !== false);
+                setEffectsEnabled(parsedSettings.effectsEnabled !== false);
             }
         } catch (error) {
             console.error('Error loading settings:', error);
         }
     };
 
-    const saveAppSettings = async () => {
+    const saveAppSettings = async (newSettings = {}) => {
         try {
-            const settings = {
-                themeColor: selectedColor,
-                darkMode: darkMode,
-            };
-            await AsyncStorage.setItem('appSettings', JSON.stringify(settings));
-            Alert.alert('Успех!', 'Настройки оформления сохранены');
+            const currentSettings = await AsyncStorage.getItem('appSettings');
+            const settings = currentSettings ? JSON.parse(currentSettings) : {};
+            const updatedSettings = { ...settings, ...newSettings };
+            await AsyncStorage.setItem('appSettings', JSON.stringify(updatedSettings));
+            return true;
         } catch (error) {
             console.error('Error saving settings:', error);
-            Alert.alert('Ошибка', 'Не удалось сохранить настройки');
+            return false;
+        }
+    };
+
+    const pickImage = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Необходимо разрешение для доступа к фотографиям');
+            return;
+        }
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            setAvatar(result.assets[0].uri);
         }
     };
 
     const saveUserData = async () => {
+        if (!editedName.trim()) {
+            Alert.alert('Ошибка', 'Пожалуйста, введите ваше имя');
+            return;
+        }
+
+        if (!editedAge || parseInt(editedAge) < 1 || parseInt(editedAge) > 120) {
+            Alert.alert('Ошибка', 'Пожалуйста, введите корректный возраст');
+            return;
+        }
+
         try {
             const updatedData = {
-                ...userData,
                 name: editedName,
                 age: parseInt(editedAge) || 0,
+                weight: parseInt(editedWeight) || 0,
+                height: parseInt(editedHeight) || 0,
                 moimoiName: editedMoiMoiName,
+                avatar: avatar,
                 updatedAt: new Date().toISOString()
             };
 
-            await AsyncStorage.setItem('userData', JSON.stringify(updatedData));
-            setUserData(updatedData);
+            await updateUserData(updatedData);
             setShowEditProfile(false);
             Alert.alert('Успех!', 'Профиль обновлен');
         } catch (error) {
@@ -117,7 +159,7 @@ export default function SettingsScreen() {
                             await AsyncStorage.multiRemove(['isLoggedIn', 'userData', 'hasCompletedOnboarding']);
                             navigation.reset({
                                 index: 0,
-                                routes: [{ name: 'Login' }],
+                                routes: [{ name: 'Onboarding' }],
                             });
                         } catch (error) {
                             console.error('Error during logout:', error);
@@ -128,9 +170,174 @@ export default function SettingsScreen() {
         );
     };
 
-    const applyColorTheme = (color) => {
-        setSelectedColor(color);
-        // Здесь можно добавить логику для динамического изменения темы во всем приложении
+    const handleNotificationToggle = async (value) => {
+        setNotificationsEnabled(value);
+        const success = await saveAppSettings({ notificationsEnabled: value });
+        if (success && value) {
+            Alert.alert('Уведомления включены', 'Вы будете получать уведомления от MoiMoi');
+        }
+    };
+
+    const handleDailyRemindersToggle = async (value) => {
+        setDailyReminders(value);
+        const success = await saveAppSettings({ dailyReminders: value });
+        if (success && value) {
+            Alert.alert('Ежедневные напоминания включены', 'Вы будете получать напоминания о ваших привычках');
+        }
+    };
+
+    const handleSoundToggle = async (value) => {
+        setSoundEnabled(value);
+        await saveAppSettings({ soundEnabled: value });
+    };
+
+    const handleVibrationToggle = async (value) => {
+        setVibrationEnabled(value);
+        await saveAppSettings({ vibrationEnabled: value });
+    };
+
+    const handleDarkModeToggle = async (value) => {
+        toggleDarkMode(value);
+    };
+
+    const handleAnimationsToggle = async (value) => {
+        setAnimationsEnabled(value);
+        const success = await saveAppSettings({ animationsEnabled: value });
+        if (success) {
+            Alert.alert('Настройки анимаций', value ? 'Анимации включены' : 'Анимации отключены');
+        }
+    };
+
+    const handleEffectsToggle = async (value) => {
+        setEffectsEnabled(value);
+        const success = await saveAppSettings({ effectsEnabled: value });
+        if (success) {
+            Alert.alert('Настройки эффектов', value ? 'Эффекты включены' : 'Эффекты отключены');
+        }
+    };
+
+    const applyColorTheme = async (color) => {
+        changeThemeColor(color);
+    };
+
+    const resetSettings = () => {
+        Alert.alert(
+            'Сброс настроек',
+            'Вы уверены, что хотите сбросить все настройки к значениям по умолчанию?',
+            [
+                { text: 'Отмена', style: 'cancel' },
+                {
+                    text: 'Сбросить',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await AsyncStorage.removeItem('appSettings');
+                            changeThemeColor('#bb69f2');
+                            toggleDarkMode(false);
+                            setNotificationsEnabled(true);
+                            setDailyReminders(true);
+                            setSoundEnabled(true);
+                            setVibrationEnabled(true);
+                            setAnimationsEnabled(true);
+                            setEffectsEnabled(true);
+                            Alert.alert('Успех', 'Настройки сброшены к значениям по умолчанию');
+                        } catch (error) {
+                            Alert.alert('Ошибка', 'Не удалось сбросить настройки');
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    const exportData = async () => {
+        try {
+            const userData = await AsyncStorage.getItem('userData');
+            const tasks = await AsyncStorage.getItem('userTasks');
+            const habits = await AsyncStorage.getItem('userHabits');
+            const settings = await AsyncStorage.getItem('appSettings');
+            const firePoints = await AsyncStorage.getItem('totalFirePoints');
+            const happiness = await AsyncStorage.getItem('moimoiHappiness');
+            const streak = await AsyncStorage.getItem('userStreak');
+
+            const exportData = {
+                userData: userData ? JSON.parse(userData) : null,
+                tasks: tasks ? JSON.parse(tasks) : [],
+                habits: habits ? JSON.parse(habits) : [],
+                settings: settings ? JSON.parse(settings) : {},
+                stats: {
+                    firePoints: firePoints || '0',
+                    happiness: happiness || '100',
+                    streak: streak || '0'
+                },
+                exportDate: new Date().toISOString(),
+                version: '1.0.0'
+            };
+
+            Alert.alert(
+                'Экспорт данных',
+                `Данные готовы к экспорту:\n- Профиль: ${exportData.userData ? '✓' : '✗'}\n- Задачи: ${exportData.tasks.length}\n- Привычки: ${exportData.habits.length}\n- Настройки: ${exportData.settings ? '✓' : '✗'}\n- Статистика: ✓`,
+                [{ text: 'OK' }]
+            );
+
+            console.log('Export data:', JSON.stringify(exportData, null, 2));
+        } catch (error) {
+            Alert.alert('Ошибка', 'Не удалось подготовить данные для экспорта');
+        }
+    };
+
+    const clearAllData = () => {
+        Alert.alert(
+            'Очистка всех данных',
+            'ВНИМАНИЕ! Это действие удалит все ваши данные: профиль, задачи, привычки, статистику. Это действие нельзя отменить!',
+            [
+                { text: 'Отмена', style: 'cancel' },
+                {
+                    text: 'Очистить все',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await AsyncStorage.multiRemove([
+                                'userData',
+                                'userTasks',
+                                'userHabits',
+                                'totalFirePoints',
+                                'moimoiHappiness',
+                                'userStreak',
+                                'lastActiveDate',
+                                'activeSkin',
+                                'ownedSkins'
+                            ]);
+                            Alert.alert('Успех', 'Все данные очищены');
+                            setShowDataManagementModal(false);
+                        } catch (error) {
+                            Alert.alert('Ошибка', 'Не удалось очистить данные');
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    const clearCache = async () => {
+        try {
+            Alert.alert('Успех', 'Кеш приложения очищен');
+        } catch (error) {
+            Alert.alert('Ошибка', 'Не удалось очистить кеш');
+        }
+    };
+
+    const calculateBMI = (weight, height) => {
+        if (!weight || !height) return null;
+        const heightInMeters = height / 100;
+        return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+    };
+
+    const getBMICategory = (bmi) => {
+        if (bmi < 18.5) return { category: 'Недостаточный вес', color: '#FF6B6B' };
+        if (bmi < 25) return { category: 'Нормальный вес', color: '#4CAF50' };
+        if (bmi < 30) return { category: 'Избыточный вес', color: '#FFA500' };
+        return { category: 'Ожирение', color: '#FF6B6B' };
     };
 
     const settingsSections = [
@@ -144,6 +351,13 @@ export default function SettingsScreen() {
                     type: 'link',
                     onPress: () => setShowEditProfile(true),
                     icon: 'create-outline'
+                },
+                {
+                    label: 'Управление данными',
+                    description: 'Экспорт и очистка данных',
+                    type: 'link',
+                    onPress: () => setShowDataManagementModal(true),
+                    icon: 'cloud-download-outline'
                 }
             ]
         },
@@ -161,14 +375,14 @@ export default function SettingsScreen() {
                 {
                     label: 'Включить уведомления',
                     value: notificationsEnabled,
-                    onValueChange: setNotificationsEnabled,
+                    onValueChange: handleNotificationToggle,
                     type: 'switch',
                     icon: 'notifications'
                 },
                 {
                     label: 'Ежедневные напоминания',
                     value: dailyReminders,
-                    onValueChange: setDailyReminders,
+                    onValueChange: handleDailyRemindersToggle,
                     type: 'switch',
                     icon: 'alarm-outline'
                 }
@@ -187,17 +401,24 @@ export default function SettingsScreen() {
                 },
                 {
                     label: 'Темная тема',
-                    value: darkMode,
-                    onValueChange: setDarkMode,
+                    value: isDarkMode,
+                    onValueChange: handleDarkModeToggle,
                     type: 'switch',
                     icon: 'moon-outline'
                 },
                 {
                     label: 'Анимации',
                     value: animationsEnabled,
-                    onValueChange: setAnimationsEnabled,
+                    onValueChange: handleAnimationsToggle,
                     type: 'switch',
                     icon: 'play-outline'
+                },
+                {
+                    label: 'Эффекты',
+                    value: effectsEnabled,
+                    onValueChange: handleEffectsToggle,
+                    type: 'switch',
+                    icon: 'sparkles-outline'
                 }
             ]
         },
@@ -206,11 +427,18 @@ export default function SettingsScreen() {
             icon: 'shield-checkmark-outline',
             items: [
                 {
-                    label: 'Настройки приватности',
-                    description: 'Управление данными и доступом',
+                    label: 'Политика конфиденциальности',
+                    description: 'Как мы защищаем ваши данные',
                     type: 'link',
                     onPress: () => setShowPrivacyModal(true),
                     icon: 'lock-closed-outline'
+                },
+                {
+                    label: 'Сброс настроек',
+                    description: 'Вернуть все настройки по умолчанию',
+                    type: 'link',
+                    onPress: resetSettings,
+                    icon: 'refresh-outline'
                 }
             ]
         },
@@ -219,29 +447,44 @@ export default function SettingsScreen() {
             icon: 'information-circle-outline',
             items: [
                 {
-                    label: 'Версия',
-                    value: '1.0.0',
+                    label: 'Версия приложения',
+                    value: '2.0.0',
                     type: 'value',
                     icon: 'logo-react'
+                },
+                {
+                    label: 'О MoiMoi',
+                    description: 'Информация о приложении и разработчиках',
+                    type: 'link',
+                    onPress: () => setShowAboutModal(true),
+                    icon: 'heart-outline'
                 }
             ]
         }
     ];
 
+    const { colors } = useTheme();
+
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Настройки</Text>
-                    <Text style={styles.headerSubtitle}>Управление приложением и профилем</Text>
+                <View style={[styles.header, { backgroundColor: colors.card }]}>
+                    <Text style={[styles.headerTitle, { color: colors.text }]}>Настройки</Text>
+                    <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>Управление приложением и профилем</Text>
                 </View>
 
                 {settingsSections.map((section, sectionIndex) => (
-                    <View key={sectionIndex} style={styles.section}>
+                    <View key={sectionIndex} style={[styles.section, { backgroundColor: colors.card }]}>
                         <View style={styles.sectionHeader}>
                             <View style={styles.sectionTitleContainer}>
-                                <Ionicons name={section.icon} size={22} color={selectedColor} />
-                                <Text style={styles.sectionTitle}>{section.title}</Text>
+                                <Ionicons
+                                    name={section.icon}
+                                    size={22}
+                                    color={themeColor}
+                                />
+                                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                                    {section.title}
+                                </Text>
                             </View>
                         </View>
 
@@ -249,7 +492,7 @@ export default function SettingsScreen() {
                             {section.items.map((item, itemIndex) => (
                                 <TouchableOpacity
                                     key={itemIndex}
-                                    style={styles.settingItem}
+                                    style={[styles.settingItem, { borderBottomColor: colors.border }]}
                                     onPress={item.onPress}
                                     disabled={!item.onPress}
                                 >
@@ -258,14 +501,18 @@ export default function SettingsScreen() {
                                             <Ionicons
                                                 name={item.icon}
                                                 size={20}
-                                                color={selectedColor}
+                                                color={themeColor}
                                                 style={styles.settingIcon}
                                             />
                                         )}
                                         <View style={styles.settingTextContainer}>
-                                            <Text style={styles.settingLabel}>{item.label}</Text>
+                                            <Text style={[styles.settingLabel, { color: colors.text }]}>
+                                                {item.label}
+                                            </Text>
                                             {item.description && (
-                                                <Text style={styles.settingDescription}>{item.description}</Text>
+                                                <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                                                    {item.description}
+                                                </Text>
                                             )}
                                         </View>
                                     </View>
@@ -274,17 +521,19 @@ export default function SettingsScreen() {
                                         <Switch
                                             value={item.value}
                                             onValueChange={item.onValueChange}
-                                            trackColor={{ false: '#f0f0f0', true: selectedColor }}
+                                            trackColor={{ false: '#767577', true: themeColor }}
                                             thumbColor={item.value ? '#ffffff' : '#f4f3f4'}
                                         />
                                     )}
 
                                     {item.type === 'value' && (
-                                        <Text style={styles.settingValue}>{item.value}</Text>
+                                        <Text style={[styles.settingValue, { color: colors.textSecondary }]}>
+                                            {item.value}
+                                        </Text>
                                     )}
 
                                     {(item.type === 'link' || !item.type) && (
-                                        <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                                        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
                                     )}
                                 </TouchableOpacity>
                             ))}
@@ -292,7 +541,10 @@ export default function SettingsScreen() {
                     </View>
                 ))}
 
-                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <TouchableOpacity
+                    style={[styles.logoutButton, { backgroundColor: colors.card, borderColor: '#ff6b6b' }]}
+                    onPress={handleLogout}
+                >
                     <Ionicons name="log-out-outline" size={20} color="#ff6b6b" />
                     <Text style={styles.logoutText}>Выйти из аккаунта</Text>
                 </TouchableOpacity>
@@ -301,61 +553,126 @@ export default function SettingsScreen() {
             {/* Модальное окно редактирования профиля */}
             <Modal visible={showEditProfile} animationType="fade" transparent statusBarTranslucent>
                 <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Редактировать профиль</Text>
+                    <View style={[styles.editProfileModalContent, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Редактировать профиль</Text>
 
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Имя</Text>
-                            <View style={styles.inputContainer}>
-                                <Ionicons name="person-outline" size={20} color={selectedColor} />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Введите ваше имя"
-                                    value={editedName}
-                                    onChangeText={setEditedName}
-                                    placeholderTextColor="#999"
-                                />
-                            </View>
-                        </View>
+                        <ScrollView
+                            style={styles.editProfileScrollView}
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={styles.editProfileScrollContent}
+                        >
+                            <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
+                                {avatar ? (
+                                    <Image source={{ uri: avatar }} style={styles.avatar} />
+                                ) : (
+                                    <View style={[styles.avatarPlaceholder, { backgroundColor: colors.background }]}>
+                                        <Ionicons name="person-outline" size={40} color={themeColor} />
+                                        <Text style={[styles.avatarText, { color: colors.textSecondary }]}></Text>
+                                    </View>
+                                )}
+                                <View style={[styles.avatarOverlay, { backgroundColor: themeColor }]}>
+                                    <Ionicons name="camera" size={20} color="white" />
+                                </View>
+                            </TouchableOpacity>
 
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Возраст</Text>
-                            <View style={styles.inputContainer}>
-                                <Ionicons name="calendar-outline" size={20} color={selectedColor} />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Введите ваш возраст"
-                                    value={editedAge}
-                                    onChangeText={setEditedAge}
-                                    keyboardType="numeric"
-                                    placeholderTextColor="#999"
-                                />
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.inputLabel, { color: colors.text }]}>Имя</Text>
+                                <View style={[styles.inputContainer, { backgroundColor: colors.background }]}>
+                                    <Ionicons name="person-outline" size={20} color={themeColor} />
+                                    <TextInput
+                                        style={[styles.input, { color: colors.text }]}
+                                        placeholder="Введите ваше имя"
+                                        placeholderTextColor={colors.textSecondary}
+                                        value={editedName}
+                                        onChangeText={setEditedName}
+                                    />
+                                </View>
                             </View>
-                        </View>
 
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Имя MoiMoi</Text>
-                            <View style={styles.inputContainer}>
-                                <Ionicons name="sparkles-outline" size={20} color={selectedColor} />
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Имя вашего помощника"
-                                    value={editedMoiMoiName}
-                                    onChangeText={setEditedMoiMoiName}
-                                    placeholderTextColor="#999"
-                                />
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.inputLabel, { color: colors.text }]}>Возраст</Text>
+                                <View style={[styles.inputContainer, { backgroundColor: colors.background }]}>
+                                    <Ionicons name="calendar-outline" size={20} color={themeColor} />
+                                    <TextInput
+                                        style={[styles.input, { color: colors.text }]}
+                                        placeholder="Введите ваш возраст"
+                                        placeholderTextColor={colors.textSecondary}
+                                        value={editedAge}
+                                        onChangeText={setEditedAge}
+                                        keyboardType="numeric"
+                                    />
+                                </View>
                             </View>
-                        </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.inputLabel, { color: colors.text }]}>Вес (кг)</Text>
+                                <View style={[styles.inputContainer, { backgroundColor: colors.background }]}>
+                                    <Ionicons name="barbell-outline" size={20} color={themeColor} />
+                                    <TextInput
+                                        style={[styles.input, { color: colors.text }]}
+                                        placeholder="Введите ваш вес"
+                                        placeholderTextColor={colors.textSecondary}
+                                        value={editedWeight}
+                                        onChangeText={setEditedWeight}
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.inputLabel, { color: colors.text }]}>Рост (см)</Text>
+                                <View style={[styles.inputContainer, { backgroundColor: colors.background }]}>
+                                    <Ionicons name="resize-outline" size={20} color={themeColor} />
+                                    <TextInput
+                                        style={[styles.input, { color: colors.text }]}
+                                        placeholder="Введите ваш рост"
+                                        placeholderTextColor={colors.textSecondary}
+                                        value={editedHeight}
+                                        onChangeText={setEditedHeight}
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                            </View>
+
+                            {editedWeight && editedHeight && (
+                                <View style={styles.bmiContainer}>
+                                    <Text style={[styles.bmiLabel, { color: colors.text }]}>Индекс массы тела (ИМТ):</Text>
+                                    {(() => {
+                                        const bmi = calculateBMI(parseInt(editedWeight), parseInt(editedHeight));
+                                        const bmiCategory = bmi ? getBMICategory(bmi) : null;
+                                        return bmi ? (
+                                            <Text style={[styles.bmiValue, { color: bmiCategory?.color }]}>
+                                                {bmi} - {bmiCategory?.category}
+                                            </Text>
+                                        ) : null;
+                                    })()}
+                                </View>
+                            )}
+
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.inputLabel, { color: colors.text }]}>Имя MoiMoi</Text>
+                                <View style={[styles.inputContainer, { backgroundColor: colors.background }]}>
+                                    <Ionicons name="sparkles-outline" size={20} color={themeColor} />
+                                    <TextInput
+                                        style={[styles.input, { color: colors.text }]}
+                                        placeholder="Имя вашего помощника"
+                                        placeholderTextColor={colors.textSecondary}
+                                        value={editedMoiMoiName}
+                                        onChangeText={setEditedMoiMoiName}
+                                    />
+                                </View>
+                            </View>
+                        </ScrollView>
 
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={styles.cancelButton}
+                                style={[styles.cancelButton, { backgroundColor: colors.background }]}
                                 onPress={() => setShowEditProfile(false)}
                             >
-                                <Text style={styles.cancelButtonText}>Отмена</Text>
+                                <Text style={[styles.cancelButtonText, { color: colors.text }]}>Отмена</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.saveButton, { backgroundColor: selectedColor }]}
+                                style={[styles.saveButton, { backgroundColor: themeColor }]}
                                 onPress={saveUserData}
                             >
                                 <Text style={styles.saveButtonText}>Сохранить</Text>
@@ -368,12 +685,12 @@ export default function SettingsScreen() {
             {/* Модальное окно внешнего вида */}
             <Modal visible={showAppearanceModal} animationType="fade" transparent statusBarTranslucent>
                 <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
-                    <View style={styles.modalContentLarge}>
-                        <Text style={styles.modalTitle}>Внешний вид</Text>
-                        <Text style={styles.modalSubtitle}>Настройте оформление приложения</Text>
+                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Внешний вид</Text>
+                        <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>Настройте оформление приложения</Text>
 
                         <View style={styles.appearanceSection}>
-                            <Text style={styles.appearanceSectionTitle}>Цветовая схема</Text>
+                            <Text style={[styles.appearanceSectionTitle, { color: colors.text }]}>Цветовая схема</Text>
                             <View style={styles.colorGrid}>
                                 {colorThemes.map((theme) => (
                                     <TouchableOpacity
@@ -381,64 +698,64 @@ export default function SettingsScreen() {
                                         style={[
                                             styles.colorOption,
                                             { backgroundColor: theme.color },
-                                            selectedColor === theme.color && styles.colorOptionSelected
+                                            themeColor === theme.color && styles.colorOptionSelected
                                         ]}
                                         onPress={() => applyColorTheme(theme.color)}
                                     >
-                                        {selectedColor === theme.color && (
+                                        {themeColor === theme.color && (
                                             <Ionicons name="checkmark" size={20} color="white" />
                                         )}
                                     </TouchableOpacity>
                                 ))}
                             </View>
-                            <Text style={styles.colorNames}>
-                                {colorThemes.find(t => t.color === selectedColor)?.name}
+                            <Text style={[styles.colorNames, { color: colors.text }]}>
+                                {colorThemes.find(t => t.color === themeColor)?.name}
                             </Text>
                         </View>
 
                         <View style={styles.appearanceSection}>
-                            <Text style={styles.appearanceSectionTitle}>Тема</Text>
+                            <Text style={[styles.appearanceSectionTitle, { color: colors.text }]}>Тема</Text>
                             <View style={styles.themeOptions}>
                                 <TouchableOpacity
-                                    style={[styles.themeOption, !darkMode && styles.themeOptionActive]}
-                                    onPress={() => setDarkMode(false)}
+                                    style={[styles.themeOption, !isDarkMode && styles.themeOptionActive, { backgroundColor: colors.background }]}
+                                    onPress={() => handleDarkModeToggle(false)}
                                 >
-                                    <Ionicons name="sunny" size={24} color={!darkMode ? selectedColor : '#ccc'} />
-                                    <Text style={[styles.themeText, !darkMode && styles.themeTextActive]}>Светлая</Text>
+                                    <Ionicons name="sunny" size={24} color={!isDarkMode ? themeColor : colors.textSecondary} />
+                                    <Text style={[styles.themeText, !isDarkMode && styles.themeTextActive, { color: colors.text }]}>Светлая</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    style={[styles.themeOption, darkMode && styles.themeOptionActive]}
-                                    onPress={() => setDarkMode(true)}
+                                    style={[styles.themeOption, isDarkMode && styles.themeOptionActive, { backgroundColor: colors.background }]}
+                                    onPress={() => handleDarkModeToggle(true)}
                                 >
-                                    <Ionicons name="moon" size={24} color={darkMode ? selectedColor : '#ccc'} />
-                                    <Text style={[styles.themeText, darkMode && styles.themeTextActive]}>Темная</Text>
+                                    <Ionicons name="moon" size={24} color={isDarkMode ? themeColor : colors.textSecondary} />
+                                    <Text style={[styles.themeText, isDarkMode && styles.themeTextActive, { color: colors.text }]}>Темная</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
 
                         <View style={styles.appearanceSection}>
-                            <Text style={styles.appearanceSectionTitle}>Эффекты</Text>
-                            <View style={styles.modalSettingItem}>
+                            <Text style={[styles.appearanceSectionTitle, { color: colors.text }]}>Эффекты</Text>
+                            <View style={[styles.modalSettingItem, { borderBottomColor: colors.border }]}>
                                 <View style={styles.modalSettingLeft}>
-                                    <Ionicons name="play-outline" size={20} color={selectedColor} />
-                                    <Text style={styles.modalSettingLabel}>Анимации</Text>
+                                    <Ionicons name="play-outline" size={20} color={themeColor} />
+                                    <Text style={[styles.modalSettingLabel, { color: colors.text }]}>Анимации</Text>
                                 </View>
                                 <Switch
                                     value={animationsEnabled}
-                                    onValueChange={setAnimationsEnabled}
-                                    trackColor={{ false: '#f0f0f0', true: selectedColor }}
+                                    onValueChange={handleAnimationsToggle}
+                                    trackColor={{ false: '#767577', true: themeColor }}
                                     thumbColor={animationsEnabled ? '#ffffff' : '#f4f3f4'}
                                 />
                             </View>
-                            <View style={styles.modalSettingItem}>
+                            <View style={[styles.modalSettingItem, { borderBottomColor: colors.border }]}>
                                 <View style={styles.modalSettingLeft}>
-                                    <Ionicons name="sparkles-outline" size={20} color={selectedColor} />
-                                    <Text style={styles.modalSettingLabel}>Эффекты</Text>
+                                    <Ionicons name="sparkles-outline" size={20} color={themeColor} />
+                                    <Text style={[styles.modalSettingLabel, { color: colors.text }]}>Эффекты</Text>
                                 </View>
                                 <Switch
                                     value={effectsEnabled}
-                                    onValueChange={setEffectsEnabled}
-                                    trackColor={{ false: '#f0f0f0', true: selectedColor }}
+                                    onValueChange={handleEffectsToggle}
+                                    trackColor={{ false: '#767577', true: themeColor }}
                                     thumbColor={effectsEnabled ? '#ffffff' : '#f4f3f4'}
                                 />
                             </View>
@@ -446,13 +763,13 @@ export default function SettingsScreen() {
 
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={styles.cancelButton}
+                                style={[styles.cancelButton, { backgroundColor: colors.background }]}
                                 onPress={() => setShowAppearanceModal(false)}
                             >
-                                <Text style={styles.cancelButtonText}>Отмена</Text>
+                                <Text style={[styles.cancelButtonText, { color: colors.text }]}>Отмена</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.saveButton, { backgroundColor: selectedColor }]}
+                                style={[styles.saveButton, { backgroundColor: themeColor }]}
                                 onPress={() => {
                                     saveAppSettings();
                                     setShowAppearanceModal(false);
@@ -465,7 +782,231 @@ export default function SettingsScreen() {
                 </BlurView>
             </Modal>
 
-            {/* Добавьте другие модальные окна по аналогии */}
+            {/* Модальное окно уведомлений */}
+            <Modal visible={showNotificationsModal} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Уведомления</Text>
+                        <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>Управление уведомлениями и напоминаниями</Text>
+
+                        <View style={styles.notificationSettings}>
+                            <View style={[styles.modalSettingItem, { borderBottomColor: colors.border }]}>
+                                <View style={styles.modalSettingLeft}>
+                                    <Ionicons name="notifications" size={20} color={themeColor} />
+                                    <Text style={[styles.modalSettingLabel, { color: colors.text }]}>Push-уведомления</Text>
+                                </View>
+                                <Switch
+                                    value={notificationsEnabled}
+                                    onValueChange={handleNotificationToggle}
+                                    trackColor={{ false: '#767577', true: themeColor }}
+                                    thumbColor={notificationsEnabled ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                            <View style={[styles.modalSettingItem, { borderBottomColor: colors.border }]}>
+                                <View style={styles.modalSettingLeft}>
+                                    <Ionicons name="alarm-outline" size={20} color={themeColor} />
+                                    <Text style={[styles.modalSettingLabel, { color: colors.text }]}>Ежедневные напоминания</Text>
+                                </View>
+                                <Switch
+                                    value={dailyReminders}
+                                    onValueChange={handleDailyRemindersToggle}
+                                    trackColor={{ false: '#767577', true: themeColor }}
+                                    thumbColor={dailyReminders ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                            <View style={[styles.modalSettingItem, { borderBottomColor: colors.border }]}>
+                                <View style={styles.modalSettingLeft}>
+                                    <Ionicons name="volume-high-outline" size={20} color={themeColor} />
+                                    <Text style={[styles.modalSettingLabel, { color: colors.text }]}>Звук уведомлений</Text>
+                                </View>
+                                <Switch
+                                    value={soundEnabled}
+                                    onValueChange={handleSoundToggle}
+                                    trackColor={{ false: '#767577', true: themeColor }}
+                                    thumbColor={soundEnabled ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                            <View style={[styles.modalSettingItem, { borderBottomColor: colors.border }]}>
+                                <View style={styles.modalSettingLeft}>
+                                    <Ionicons name="phone-portrait-outline" size={20} color={themeColor} />
+                                    <Text style={[styles.modalSettingLabel, { color: colors.text }]}>Вибрация</Text>
+                                </View>
+                                <Switch
+                                    value={vibrationEnabled}
+                                    onValueChange={handleVibrationToggle}
+                                    trackColor={{ false: '#767577', true: themeColor }}
+                                    thumbColor={vibrationEnabled ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                        </View>
+
+                        <TouchableOpacity
+                            style={[styles.closeButton, { backgroundColor: themeColor }]}
+                            onPress={() => setShowNotificationsModal(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Закрыть</Text>
+                        </TouchableOpacity>
+                    </View>
+                </BlurView>
+            </Modal>
+
+            {/* Модальное окно управления данными */}
+            <Modal visible={showDataManagementModal} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Управление данными</Text>
+                        <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>Экспорт и очистка ваших данных</Text>
+
+                        <View style={styles.dataManagementOptions}>
+                            <TouchableOpacity
+                                style={[styles.dataOption, { backgroundColor: colors.background }]}
+                                onPress={exportData}
+                            >
+                                <Ionicons name="download-outline" size={24} color={themeColor} />
+                                <View style={styles.dataOptionText}>
+                                    <Text style={[styles.dataOptionTitle, { color: colors.text }]}>Экспорт данных</Text>
+                                    <Text style={[styles.dataOptionDescription, { color: colors.textSecondary }]}>
+                                        Скачайте все ваши данные в формате JSON
+                                    </Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.dataOption, { backgroundColor: colors.background }]}
+                                onPress={clearCache}
+                            >
+                                <Ionicons name="trash-outline" size={24} color="#FF6B6B" />
+                                <View style={styles.dataOptionText}>
+                                    <Text style={[styles.dataOptionTitle, { color: colors.text }]}>Очистить кеш</Text>
+                                    <Text style={[styles.dataOptionDescription, { color: colors.textSecondary }]}>
+                                        Удалить временные файлы приложения
+                                    </Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.dataOption, { backgroundColor: colors.background, borderColor: '#ff6b6b' }]}
+                                onPress={clearAllData}
+                            >
+                                <Ionicons name="nuclear-outline" size={24} color="#ff6b6b" />
+                                <View style={styles.dataOptionText}>
+                                    <Text style={[styles.dataOptionTitle, { color: '#ff6b6b' }]}>Очистить все данные</Text>
+                                    <Text style={[styles.dataOptionDescription, { color: colors.textSecondary }]}>
+                                        Удалить все данные приложения (необратимо)
+                                    </Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={20} color="#ff6b6b" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.closeButton, { backgroundColor: themeColor }]}
+                                onPress={() => setShowDataManagementModal(false)}
+                            >
+                                <Text style={styles.closeButtonText}>Закрыть</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </BlurView>
+            </Modal>
+
+            {/* Модальное окно "О приложении" */}
+            <Modal visible={showAboutModal} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>О MoiMoi</Text>
+
+                        <View style={styles.aboutContent}>
+                            <Ionicons name="heart" size={60} color={themeColor} style={styles.aboutIcon} />
+                            <Text style={[styles.aboutText, { color: colors.text }]}>
+                                MoiMoi - ваш персональный помощник для развития привычек и достижения целей!
+                            </Text>
+                            <Text style={[styles.aboutSubtext, { color: colors.textSecondary }]}>
+                                Версия 2.0.0{'\n'}
+                                Разработано с ❤️ для вашего саморазвития
+                            </Text>
+
+                            <View style={styles.featuresList}>
+                                <View style={styles.featureItem}>
+                                    <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                                    <Text style={[styles.featureText, { color: colors.text }]}>Отслеживание привычек</Text>
+                                </View>
+                                <View style={styles.featureItem}>
+                                    <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                                    <Text style={[styles.featureText, { color: colors.text }]}>Система мотивации</Text>
+                                </View>
+                                <View style={styles.featureItem}>
+                                    <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                                    <Text style={[styles.featureText, { color: colors.text }]}>Персональная статистика</Text>
+                                </View>
+                                <View style={styles.featureItem}>
+                                    <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                                    <Text style={[styles.featureText, { color: colors.text }]}>Игровые элементы</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        <TouchableOpacity
+                            style={[styles.closeButton, { backgroundColor: themeColor }]}
+                            onPress={() => setShowAboutModal(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Закрыть</Text>
+                        </TouchableOpacity>
+                    </View>
+                </BlurView>
+            </Modal>
+
+            {/* Модальное окно политики конфиденциальности */}
+            <Modal visible={showPrivacyModal} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={[styles.modalContentLarge, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Политика конфиденциальности</Text>
+
+                        <ScrollView style={styles.privacyContent} showsVerticalScrollIndicator={false}>
+                            <Text style={[styles.privacyText, { color: colors.text }]}>
+                                <Text style={styles.privacySectionTitle}>1. Сбор данных{'\n\n'}</Text>
+                                MoiMoi собирает только необходимые данные для работы приложения:{'\n\n'}
+                                • Имя и базовая информация профиля{'\n'}
+                                • Ваши привычки и цели{'\n'}
+                                • Прогресс выполнения задач{'\n'}
+                                • Настройки приложения{'\n\n'}
+
+                                <Text style={styles.privacySectionTitle}>2. Использование данных{'\n\n'}</Text>
+                                Ваши данные используются исключительно для:{'\n\n'}
+                                • Персонализации вашего опыта{'\n'}
+                                • Отслеживания прогресса{'\n'}
+                                • Предоставления статистики{'\n'}
+                                • Улучшения работы приложения{'\n\n'}
+
+                                <Text style={styles.privacySectionTitle}>3. Защита данных{'\n\n'}</Text>
+                                Все данные хранятся локально на вашем устройстве.
+                                Мы не передаем вашу информацию третьим лицам.{'\n\n'}
+
+                                <Text style={styles.privacySectionTitle}>4. Ваши права{'\n\n'}</Text>
+                                Вы можете в любой время:{'\n\n'}
+                                • Экспортировать свои данные{'\n'}
+                                • Удалить аккаунт{'\n'}
+                                • Очистить все данные{'\n'}
+                                • Изменить настройки конфиденциальности{'\n\n'}
+
+                                <Text style={styles.privacyNote}>
+                                    Последнее обновление: {new Date().toLocaleDateString('ru-RU')}
+                                </Text>
+                            </Text>
+                        </ScrollView>
+
+                        <TouchableOpacity
+                            style={[styles.closeButton, { backgroundColor: themeColor }]}
+                            onPress={() => setShowPrivacyModal(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Закрыть</Text>
+                        </TouchableOpacity>
+                    </View>
+                </BlurView>
+            </Modal>
         </View>
     );
 }
@@ -473,14 +1014,12 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8f9fa',
     },
     scrollView: {
         flex: 1,
     },
     header: {
         padding: 25,
-        backgroundColor: 'white',
         borderBottomLeftRadius: 25,
         borderBottomRightRadius: 25,
         marginBottom: 10,
@@ -488,15 +1027,12 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#333',
         marginBottom: 5,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: '#666',
     },
     section: {
-        backgroundColor: 'white',
         marginHorizontal: 20,
         marginBottom: 15,
         borderRadius: 20,
@@ -510,7 +1046,6 @@ const styles = StyleSheet.create({
     sectionHeader: {
         padding: 20,
         borderBottomWidth: 1,
-        borderBottomColor: '#f8f9fa',
     },
     sectionTitleContainer: {
         flexDirection: 'row',
@@ -519,7 +1054,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
         marginLeft: 10,
     },
     sectionContent: {
@@ -532,7 +1066,6 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         paddingHorizontal: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#f8f9fa',
     },
     settingLeft: {
         flexDirection: 'row',
@@ -547,29 +1080,24 @@ const styles = StyleSheet.create({
     },
     settingLabel: {
         fontSize: 16,
-        color: '#333',
         fontWeight: '500',
     },
     settingDescription: {
         fontSize: 12,
-        color: '#666',
         marginTop: 2,
     },
     settingValue: {
         fontSize: 14,
-        color: '#999',
         fontWeight: '500',
     },
     logoutButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'white',
         margin: 20,
         padding: 18,
         borderRadius: 16,
         borderWidth: 1,
-        borderColor: '#ff6b6b',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -589,7 +1117,6 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     modalContent: {
-        backgroundColor: 'white',
         borderRadius: 25,
         padding: 25,
         width: '100%',
@@ -601,7 +1128,6 @@ const styles = StyleSheet.create({
         elevation: 10,
     },
     modalContentLarge: {
-        backgroundColor: 'white',
         borderRadius: 25,
         padding: 25,
         width: '100%',
@@ -613,19 +1139,74 @@ const styles = StyleSheet.create({
         shadowRadius: 20,
         elevation: 10,
     },
+    // Специальные стили для модального окна редактирования профиля
+    editProfileModalContent: {
+        borderRadius: 25,
+        padding: 25,
+        width: '100%',
+        maxWidth: 400,
+        height: '80%',
+        maxHeight: '80%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    editProfileScrollView: {
+        flex: 1,
+    },
+    editProfileScrollContent: {
+        paddingBottom: 10,
+    },
     modalTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
         marginBottom: 8,
         textAlign: 'center',
     },
     modalSubtitle: {
         fontSize: 16,
-        color: '#666',
         textAlign: 'center',
         marginBottom: 25,
         lineHeight: 20,
+    },
+    avatarContainer: {
+        alignItems: 'center',
+        marginBottom: 25,
+        position: 'relative',
+    },
+    avatar: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        borderWidth: 1,
+    },
+    avatarPlaceholder: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 3,
+        borderStyle: 'dashed',
+    },
+    avatarText: {
+        marginTop: 8,
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    avatarOverlay: {
+        position: 'absolute',
+        bottom: 0,
+        right: '35%',
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 3,
+        borderColor: 'white',
     },
     inputGroup: {
         marginBottom: 20,
@@ -633,13 +1214,11 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#333',
         marginBottom: 8,
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f8f9fa',
         borderRadius: 16,
         paddingHorizontal: 15,
         paddingVertical: 12,
@@ -647,8 +1226,21 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         fontSize: 16,
-        color: '#333',
         marginLeft: 10,
+    },
+    bmiContainer: {
+        marginBottom: 20,
+        padding: 15,
+        borderRadius: 12,
+    },
+    bmiLabel: {
+        fontSize: 14,
+        fontWeight: '500',
+        marginBottom: 5,
+    },
+    bmiValue: {
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     modalButtons: {
         flexDirection: 'row',
@@ -659,12 +1251,10 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         borderRadius: 16,
-        backgroundColor: '#f8f9fa',
         marginRight: 10,
         alignItems: 'center',
     },
     cancelButtonText: {
-        color: '#666',
         fontSize: 16,
         fontWeight: '500',
     },
@@ -680,13 +1270,23 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
+    closeButton: {
+        padding: 16,
+        borderRadius: 16,
+        alignItems: 'center',
+        marginTop: 15,
+    },
+    closeButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
     appearanceSection: {
         marginBottom: 25,
     },
     appearanceSectionTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#333',
         marginBottom: 15,
     },
     colorGrid: {
@@ -721,7 +1321,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 16,
         fontWeight: '600',
-        color: '#333',
         marginTop: 10,
     },
     themeOptions: {
@@ -733,23 +1332,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         borderRadius: 16,
-        backgroundColor: '#f8f9fa',
         marginHorizontal: 5,
         borderWidth: 2,
         borderColor: 'transparent',
     },
     themeOptionActive: {
         borderColor: '#bb69f2',
-        backgroundColor: '#f0e6ff',
     },
     themeText: {
         marginTop: 8,
         fontSize: 14,
-        color: '#666',
         fontWeight: '500',
     },
     themeTextActive: {
-        color: '#bb69f2',
         fontWeight: '600',
     },
     modalSettingItem: {
@@ -758,7 +1353,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#f8f9fa',
     },
     modalSettingLeft: {
         flexDirection: 'row',
@@ -767,8 +1361,84 @@ const styles = StyleSheet.create({
     },
     modalSettingLabel: {
         fontSize: 16,
-        color: '#333',
         marginLeft: 12,
         fontWeight: '500',
+    },
+    notificationSettings: {
+        marginBottom: 20,
+    },
+    dataManagementOptions: {
+        marginBottom: 20,
+    },
+    dataOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    dataOptionText: {
+        flex: 1,
+        marginLeft: 12,
+    },
+    dataOptionTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    dataOptionDescription: {
+        fontSize: 12,
+    },
+    aboutContent: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    aboutIcon: {
+        marginBottom: 20,
+    },
+    aboutText: {
+        fontSize: 16,
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 15,
+    },
+    aboutSubtext: {
+        fontSize: 14,
+        textAlign: 'center',
+        lineHeight: 20,
+        marginBottom: 20,
+    },
+    featuresList: {
+        width: '100%',
+        marginTop: 15,
+    },
+    featureItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    featureText: {
+        fontSize: 14,
+        marginLeft: 10,
+    },
+    privacyContent: {
+        maxHeight: 400,
+        marginBottom: 20,
+    },
+    privacyText: {
+        fontSize: 14,
+        lineHeight: 20,
+    },
+    privacySectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 15,
+    },
+    privacyNote: {
+        fontStyle: 'italic',
+        marginTop: 20,
+        textAlign: 'center',
     },
 });

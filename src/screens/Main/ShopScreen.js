@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LottieView from 'lottie-react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 const ShopScreen = () => {
+    const { colors, themeColor } = useTheme();
     const [firePoints, setFirePoints] = useState(0);
     const [ownedSkins, setOwnedSkins] = useState(['default']);
     const [activeSkin, setActiveSkin] = useState('default');
@@ -60,7 +62,6 @@ const ShopScreen = () => {
     };
 
     const getSkinPreview = (skinId) => {
-        // Здесь можно добавить превью анимаций для каждого скина
         switch (skinId) {
             case 'cool':
                 return require('../../../assets/Animations/moimoi_cool.json');
@@ -78,19 +79,19 @@ const ShopScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Магазин скинов</Text>
-                <View style={styles.pointsContainer}>
+            <View style={[styles.header, { backgroundColor: colors.card }]}>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Магазин скинов</Text>
+                <View style={[styles.pointsContainer, { backgroundColor: colors.background }]}>
                     <Ionicons name="flame" size={24} color="#FF6B35" />
-                    <Text style={styles.pointsText}>{firePoints}</Text>
+                    <Text style={[styles.pointsText, { color: colors.text }]}>{firePoints}</Text>
                 </View>
             </View>
 
             {/* Current Skin Preview */}
-            <View style={styles.previewSection}>
-                <Text style={styles.previewTitle}>Текущий скин</Text>
+            <View style={[styles.previewSection, { backgroundColor: colors.card }]}>
+                <Text style={[styles.previewTitle, { color: colors.text }]}>Текущий скин</Text>
                 <View style={styles.previewContainer}>
                     <LottieView
                         source={getSkinPreview(activeSkin)}
@@ -98,7 +99,7 @@ const ShopScreen = () => {
                         loop
                         style={styles.previewAnimation}
                     />
-                    <Text style={styles.activeSkinName}>
+                    <Text style={[styles.activeSkinName, { color: themeColor }]}>
                         {skins.find(skin => skin.id === activeSkin)?.name}
                     </Text>
                 </View>
@@ -106,20 +107,27 @@ const ShopScreen = () => {
 
             {/* Skins List */}
             <ScrollView style={styles.skinsList} showsVerticalScrollIndicator={false}>
-                <Text style={styles.sectionTitle}>Доступные скины</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Доступные скины</Text>
 
                 {skins.map((skin) => {
                     const isOwned = ownedSkins.includes(skin.id) || skin.price === 0;
                     const isActive = activeSkin === skin.id;
 
                     return (
-                        <View key={skin.id} style={[styles.skinCard, isActive && styles.activeSkinCard]}>
+                        <View
+                            key={skin.id}
+                            style={[
+                                styles.skinCard,
+                                { backgroundColor: colors.card },
+                                isActive && [styles.activeSkinCard, { borderColor: themeColor, backgroundColor: colors.background }]
+                            ]}
+                        >
                             <View style={styles.skinLeft}>
                                 <Text style={styles.skinIcon}>{skin.icon}</Text>
                                 <View style={styles.skinInfo}>
-                                    <Text style={styles.skinName}>{skin.name}</Text>
-                                    <Text style={styles.skinDescription}>{skin.description}</Text>
-                                    <Text style={styles.skinPrice}>
+                                    <Text style={[styles.skinName, { color: colors.text }]}>{skin.name}</Text>
+                                    <Text style={[styles.skinDescription, { color: colors.textSecondary }]}>{skin.description}</Text>
+                                    <Text style={[styles.skinPrice, { color: '#FF6B35' }]}>
                                         {skin.price === 0 ? 'Бесплатно' : `${skin.price} Огоньков`}
                                     </Text>
                                 </View>
@@ -127,7 +135,11 @@ const ShopScreen = () => {
 
                             {isOwned ? (
                                 <TouchableOpacity
-                                    style={[styles.equipButton, isActive && styles.equippedButton]}
+                                    style={[
+                                        styles.equipButton,
+                                        isActive && styles.equippedButton,
+                                        { backgroundColor: isActive ? '#4CAF50' : themeColor }
+                                    ]}
                                     onPress={() => equipSkin(skin.id)}
                                     disabled={isActive}
                                 >
@@ -137,7 +149,11 @@ const ShopScreen = () => {
                                 </TouchableOpacity>
                             ) : (
                                 <TouchableOpacity
-                                    style={[styles.buyButton, firePoints < skin.price && styles.buyButtonDisabled]}
+                                    style={[
+                                        styles.buyButton,
+                                        firePoints < skin.price && styles.buyButtonDisabled,
+                                        { backgroundColor: firePoints < skin.price ? colors.border : themeColor }
+                                    ]}
                                     onPress={() => buySkin(skin)}
                                     disabled={firePoints < skin.price}
                                 >
@@ -152,8 +168,8 @@ const ShopScreen = () => {
             </ScrollView>
 
             {/* Info Section */}
-            <View style={styles.infoSection}>
-                <Text style={styles.infoText}>
+            <View style={[styles.infoSection, { backgroundColor: colors.background, borderLeftColor: themeColor }]}>
+                <Text style={[styles.infoText, { color: colors.text }]}>
                     💡 Огоньки можно зарабатывать, выполняя ежедневные задачи!
                 </Text>
             </View>
@@ -164,26 +180,22 @@ const ShopScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8f9fa'
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 20,
-        backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#e9ecef'
     },
     headerTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333'
     },
     pointsContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFF5F0',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
@@ -191,11 +203,9 @@ const styles = StyleSheet.create({
     pointsText: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FF6B35',
         marginLeft: 5
     },
     previewSection: {
-        backgroundColor: 'white',
         padding: 20,
         margin: 15,
         borderRadius: 16,
@@ -208,7 +218,6 @@ const styles = StyleSheet.create({
     previewTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
         marginBottom: 15,
         textAlign: 'center',
     },
@@ -216,13 +225,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     previewAnimation: {
-        width: 120,
-        height: 120,
+        margin: -35,
+        width: 220,
+        height: 220,
     },
     activeSkinName: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#bb69f2',
         marginTop: 10,
     },
     skinsList: {
@@ -232,7 +241,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
         marginBottom: 15,
         marginLeft: 5,
     },
@@ -240,7 +248,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: 'white',
         padding: 15,
         borderRadius: 12,
         marginBottom: 10,
@@ -252,8 +259,6 @@ const styles = StyleSheet.create({
     },
     activeSkinCard: {
         borderWidth: 2,
-        borderColor: '#bb69f2',
-        backgroundColor: '#f0e6ff',
     },
     skinLeft: {
         flexDirection: 'row',
@@ -270,21 +275,17 @@ const styles = StyleSheet.create({
     skinName: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#333'
     },
     skinDescription: {
         fontSize: 12,
-        color: '#666',
         marginTop: 2,
     },
     skinPrice: {
         fontSize: 14,
-        color: '#FF6B35',
         marginTop: 4,
         fontWeight: '500'
     },
     buyButton: {
-        backgroundColor: '#bb69f2',
         paddingHorizontal: 15,
         paddingVertical: 8,
         borderRadius: 8,
@@ -292,7 +293,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     buyButtonDisabled: {
-        backgroundColor: '#ccc',
+        opacity: 0.6,
     },
     buyButtonText: {
         color: 'white',
@@ -300,7 +301,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     equipButton: {
-        backgroundColor: '#69a4fe',
         paddingHorizontal: 15,
         paddingVertical: 8,
         borderRadius: 8,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     equippedButton: {
-        backgroundColor: '#4CAF50',
+        opacity: 0.8,
     },
     equipButtonText: {
         color: 'white',
@@ -316,15 +316,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     infoSection: {
-        backgroundColor: '#e3f2fd',
         margin: 15,
         padding: 15,
         borderRadius: 12,
         borderLeftWidth: 4,
-        borderLeftColor: '#69a4fe',
     },
     infoText: {
-        color: '#1976d2',
         fontSize: 14,
         textAlign: 'center',
         fontWeight: '500',

@@ -14,15 +14,15 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function HomeScreen() {
-    const [userName, setUserName] = useState('Пользователь');
+    const { colors, themeColor, userData } = useTheme();
     const [tasks, setTasks] = useState([]);
     const [showAddTask, setShowAddTask] = useState(false);
     const [newTask, setNewTask] = useState('');
-    const [userData, setUserData] = useState(null);
 
     // Система огоньков и счастья
     const [firePoints, setFirePoints] = useState(0);
@@ -34,31 +34,17 @@ export default function HomeScreen() {
 
     // Анимации для Duolingo-style эффектов
     const [showCelebration, setShowCelebration] = useState(false);
-    const [celebrationType, setCelebrationType] = useState(''); // 'fire' или 'streak'
+    const [celebrationType, setCelebrationType] = useState('');
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.8)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
 
     useEffect(() => {
-        loadUserData();
         loadTasks();
         loadMoimoiState();
         loadStreak();
         startHappinessDecay();
     }, []);
-
-    const loadUserData = async () => {
-        try {
-            const userDataString = await AsyncStorage.getItem('userData');
-            if (userDataString) {
-                const data = JSON.parse(userDataString);
-                setUserData(data);
-                setUserName(data.name || 'Пользователь');
-            }
-        } catch (error) {
-            console.error('Error loading user data:', error);
-        }
-    };
 
     const loadTasks = async () => {
         try {
@@ -119,7 +105,6 @@ export default function HomeScreen() {
         return () => clearInterval(happinessInterval);
     };
 
-    // Анимация празднования
     const showCelebrationAnimation = (type) => {
         setCelebrationType(type);
         setShowCelebration(true);
@@ -250,7 +235,6 @@ export default function HomeScreen() {
     };
 
     const getMoimoiAnimation = () => {
-        // Базовые анимации по уровню счастья
         if (moimoiHappiness >= 80) return require('../../../assets/Animations/moimoi_happy.json');
         if (moimoiHappiness >= 50) return require('../../../assets/Animations/moimoi_normal.json');
         if (moimoiHappiness >= 20) return require('../../../assets/Animations/moimoi_sad.json');
@@ -288,15 +272,15 @@ export default function HomeScreen() {
                     }
                 ]}
             >
-                <View style={styles.celebrationContent}>
+                <View style={[styles.celebrationContent, { backgroundColor: colors.card }]}>
                     <LottieView
                         source={config.animation}
                         autoPlay
                         loop={false}
                         style={styles.celebrationAnimation}
                     />
-                    <Text style={styles.celebrationTitle}>{config.title}</Text>
-                    <Text style={styles.celebrationSubtitle}>{config.subtitle}</Text>
+                    <Text style={[styles.celebrationTitle, { color: colors.text }]}>{config.title}</Text>
+                    <Text style={[styles.celebrationSubtitle, { color: colors.textSecondary }]}>{config.subtitle}</Text>
                 </View>
             </Animated.View>
         );
@@ -339,11 +323,17 @@ export default function HomeScreen() {
 
     const completedTasks = tasks.filter(task => task.completed).length;
 
+    const containerStyle = { backgroundColor: colors.background };
+    const headerStyle = { backgroundColor: themeColor };
+    const tasksContainerStyle = { backgroundColor: colors.card, borderTopLeftRadius: 30, borderTopRightRadius: 30 };
+    const taskItemStyle = { backgroundColor: colors.background, borderLeftColor: themeColor };
+    const modalContentStyle = { backgroundColor: colors.card };
+
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, containerStyle]}>
             {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.welcomeText}>Добро пожаловать, {userName}! 👋</Text>
+            <View style={[styles.header, headerStyle]}>
+                <Text style={styles.welcomeText}>Добро пожаловать, {userData?.name || 'Пользователь'}! 👋</Text>
                 <Text style={styles.moimoiText}>MoiMoi</Text>
             </View>
 
@@ -359,7 +349,7 @@ export default function HomeScreen() {
                 <View style={styles.happinessBar}>
                     <View style={[styles.happinessFill, { width: `${moimoiHappiness}%` }]} />
                 </View>
-                <Text style={styles.happinessText}>
+                <Text style={[styles.happinessText, { color: colors.textSecondary }]}>
                     {moimoiHappiness >= 80 ? 'Счастлив! 😊' :
                         moimoiHappiness >= 50 ? 'Нормально 🙂' :
                             moimoiHappiness >= 20 ? 'Грустит 😔' : 'Спит... 💤'}
@@ -367,44 +357,44 @@ export default function HomeScreen() {
             </View>
 
             {/* Stats Section */}
-            <View style={styles.statsContainer}>
+            <View style={[styles.statsContainer, { backgroundColor: colors.card }]}>
                 <View style={styles.statItem}>
-                    <Text style={styles.statValue}>Lvl 1</Text>
-                    <Text style={styles.statLabel}>Уровень</Text>
+                    <Text style={[styles.statValue, { color: colors.text }]}>Lvl 1</Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Уровень</Text>
                 </View>
                 <View style={styles.statItem}>
                     <View style={styles.fireStat}>
                         <Ionicons name="flame" size={20} color="#FF6B35" />
-                        <Text style={styles.statValue}>{firePoints}</Text>
+                        <Text style={[styles.statValue, { color: colors.text }]}>{firePoints}</Text>
                     </View>
-                    <Text style={styles.statLabel}>Огоньки</Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Огоньки</Text>
                 </View>
                 <View style={styles.statItem}>
                     <View style={styles.streakStat}>
                         <Ionicons name="flash" size={20} color="#FFD93D" />
-                        <Text style={styles.statValue}>{streakDays}</Text>
+                        <Text style={[styles.statValue, { color: colors.text }]}>{streakDays}</Text>
                     </View>
-                    <Text style={styles.statLabel}>Стрик</Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Стрик</Text>
                 </View>
             </View>
 
             {/* Tasks Section */}
-            <View style={styles.tasksContainer}>
+            <View style={[styles.tasksContainer, tasksContainerStyle]}>
                 <View style={styles.tasksHeader}>
-                    <Text style={styles.tasksTitle}>Сегодняшние задачи</Text>
-                    <Text style={styles.tasksCounter}>{completedTasks}/{tasks.length} выполнено</Text>
+                    <Text style={[styles.tasksTitle, { color: colors.text }]}>Сегодняшние задачи</Text>
+                    <Text style={[styles.tasksCounter, { color: themeColor }]}>{completedTasks}/{tasks.length} выполнено</Text>
                 </View>
 
                 <ScrollView style={styles.tasksList} showsVerticalScrollIndicator={false}>
                     {tasks.length === 0 ? (
                         <View style={styles.emptyState}>
-                            <Ionicons name="checkmark-done-circle-outline" size={64} color="#bb69f2" />
-                            <Text style={styles.emptyText}>Пока нет задач</Text>
-                            <Text style={styles.emptySubtext}>Добавьте свою первую задачу!</Text>
+                            <Ionicons name="checkmark-done-circle-outline" size={64} color={themeColor} />
+                            <Text style={[styles.emptyText, { color: colors.text }]}>Пока нет задач</Text>
+                            <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>Добавьте свою первую задачу!</Text>
                         </View>
                     ) : (
                         tasks.map((task) => (
-                            <View key={task.id} style={styles.taskItem}>
+                            <View key={task.id} style={[styles.taskItem, taskItemStyle]}>
                                 <TouchableOpacity
                                     style={[
                                         styles.checkbox,
@@ -418,7 +408,8 @@ export default function HomeScreen() {
                                 </TouchableOpacity>
                                 <Text style={[
                                     styles.taskText,
-                                    task.completed && styles.taskTextCompleted
+                                    task.completed && styles.taskTextCompleted,
+                                    { color: colors.text }
                                 ]}>
                                     {task.text}
                                 </Text>
@@ -436,7 +427,7 @@ export default function HomeScreen() {
 
             {/* Floating Action Button */}
             <TouchableOpacity
-                style={styles.fab}
+                style={[styles.fab, { backgroundColor: themeColor }]}
                 onPress={() => setShowAddTask(true)}
             >
                 <Ionicons name="add" size={28} color="white" />
@@ -450,25 +441,31 @@ export default function HomeScreen() {
                 statusBarTranslucent
             >
                 <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Новая задача</Text>
+                    <View style={[styles.modalContent, modalContentStyle]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Новая задача</Text>
                         <TextInput
-                            style={styles.taskInput}
+                            style={[styles.taskInput, {
+                                backgroundColor: colors.background,
+                                borderColor: colors.border,
+                                color: colors.text
+                            }]}
                             placeholder="Введите задачу..."
+                            placeholderTextColor={colors.textSecondary}
                             value={newTask}
                             onChangeText={setNewTask}
                             multiline
                         />
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                style={styles.cancelButton}
+                                style={[styles.cancelButton, { backgroundColor: colors.background }]}
                                 onPress={() => setShowAddTask(false)}
                             >
-                                <Text style={styles.cancelButtonText}>Отмена</Text>
+                                <Text style={[styles.cancelButtonText, { color: colors.text }]}>Отмена</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[
                                     styles.addButton,
+                                    { backgroundColor: themeColor },
                                     !newTask.trim() && styles.addButtonDisabled
                                 ]}
                                 onPress={addTask}
@@ -487,15 +484,13 @@ export default function HomeScreen() {
     );
 }
 
+// Стили остаются прежними, но добавляются динамические цвета через props
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8f9fa',
     },
     header: {
         padding: 20,
-        paddingTop: 60,
-        backgroundColor: '#bb69f2',
     },
     welcomeText: {
         color: 'white',
@@ -510,7 +505,7 @@ const styles = StyleSheet.create({
     },
     moimoiContainer: {
         alignItems: 'center',
-        marginTop: -25,
+        marginTop: -35,
         marginBottom: 10,
     },
     moimoiAnimation: {
@@ -532,7 +527,6 @@ const styles = StyleSheet.create({
     },
     happinessText: {
         fontSize: 14,
-        color: '#666',
         marginTop: 5,
         fontWeight: '500',
     },
@@ -541,28 +535,24 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         paddingHorizontal: 20,
         marginBottom: 20,
-    },
-    statItem: {
-        alignItems: 'center',
-        backgroundColor: 'white',
-        padding: 15,
         borderRadius: 16,
-        minWidth: 80,
-        shadowColor: '#bb69f2',
+        padding: 15,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
         elevation: 5,
     },
+    statItem: {
+        alignItems: 'center',
+    },
     statValue: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
         marginBottom: 5,
     },
     statLabel: {
         fontSize: 12,
-        color: '#666',
         fontWeight: '500',
     },
     fireStat: {
@@ -575,9 +565,6 @@ const styles = StyleSheet.create({
     },
     tasksContainer: {
         flex: 1,
-        backgroundColor: 'white',
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
         padding: 20,
     },
     tasksHeader: {
@@ -589,11 +576,9 @@ const styles = StyleSheet.create({
     tasksTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
     },
     tasksCounter: {
         fontSize: 14,
-        color: '#bb69f2',
         fontWeight: '600',
     },
     tasksList: {
@@ -606,24 +591,20 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 18,
-        color: '#666',
         marginTop: 16,
         fontWeight: '500',
     },
     emptySubtext: {
         fontSize: 14,
-        color: '#999',
         marginTop: 8,
     },
     taskItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f8f9fa',
         padding: 16,
         borderRadius: 12,
         marginBottom: 10,
         borderLeftWidth: 4,
-        borderLeftColor: '#bb69f2',
     },
     checkbox: {
         width: 24,
@@ -642,11 +623,9 @@ const styles = StyleSheet.create({
     taskText: {
         flex: 1,
         fontSize: 16,
-        color: '#333',
     },
     taskTextCompleted: {
         textDecorationLine: 'line-through',
-        color: '#999',
     },
     deleteButton: {
         padding: 4,
@@ -658,10 +637,9 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: '#69a4fe',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#69a4fe',
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -675,7 +653,6 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     modalContent: {
-        backgroundColor: 'white',
         borderRadius: 20,
         padding: 24,
         width: '100%',
@@ -689,19 +666,16 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 16,
-        color: '#333',
         textAlign: 'center',
     },
     taskInput: {
         borderWidth: 1,
-        borderColor: '#e9ecef',
         borderRadius: 12,
         padding: 16,
         fontSize: 16,
         minHeight: 100,
         textAlignVertical: 'top',
         marginBottom: 20,
-        backgroundColor: '#f8f9fa',
     },
     modalButtons: {
         flexDirection: 'row',
@@ -711,12 +685,10 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         borderRadius: 12,
-        backgroundColor: '#f8f9fa',
         marginRight: 10,
         alignItems: 'center',
     },
     cancelButtonText: {
-        color: '#666',
         fontSize: 16,
         fontWeight: '500',
     },
@@ -724,7 +696,6 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         borderRadius: 12,
-        backgroundColor: '#69a4fe',
         marginLeft: 10,
         alignItems: 'center',
     },
@@ -748,7 +719,6 @@ const styles = StyleSheet.create({
         zIndex: 1000,
     },
     celebrationContent: {
-        backgroundColor: 'white',
         borderRadius: 20,
         padding: 30,
         alignItems: 'center',
@@ -767,13 +737,11 @@ const styles = StyleSheet.create({
     celebrationTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
         textAlign: 'center',
         marginBottom: 10,
     },
     celebrationSubtitle: {
         fontSize: 16,
-        color: '#666',
         textAlign: 'center',
         lineHeight: 20,
     },
