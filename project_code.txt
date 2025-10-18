@@ -1,0 +1,4521 @@
+================================================================================
+ИСХОДНЫЙ КОД ПРОЕКТА
+Директория: C:\Users\MSI\Desktop\MoiMoi\MoiMoi
+Всего файлов: 16
+================================================================================
+
+
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+КАТЕГОРИЯ: JSON (2 файлов)
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: app.json                                                               ║
+║ КАТЕГОРИЯ: JSON                                                              ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\app.json                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+{
+  "expo": {
+    "name": "MoiMoi",
+    "slug": "MoiMoi",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "plugins": [
+      "expo-notifications"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM"
+      ],
+      "package": "com.fgerman.MoiMoi"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c5b27058-5865-43b1-9419-5a59eea1d018"
+      }
+    }
+  }
+}
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: eas.json                                                               ║
+║ КАТЕГОРИЯ: JSON                                                              ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\eas.json                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+{
+    "build": {
+        "preview": {
+            "android": {
+                "buildType": "apk"
+            }
+        },
+        "production": {}
+    }
+}
+────────────────────────────────────────────────────────────────────────────────
+
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+КАТЕГОРИЯ: JavaScript (13 файлов)
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: App.js                                                                 ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\App.js                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { StatusBar } from 'react-native';
+import AppNavigator from './src/navigation/AppNavigator';
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <AppNavigator />
+    </NavigationContainer>
+  );
+}
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: index.js                                                               ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\index.js                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import { registerRootComponent } from 'expo';
+
+import App from './App';
+
+// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
+// It also ensures that whether you load the app in Expo Go or in a native build,
+// the environment is set up appropriately
+registerRootComponent(App);
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\navigation\AppNavigator.js                                         ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\navigation\AppNavigator.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React, { useState, useEffect } from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+
+// Импорт экранов
+import GoogleLoginPage from '../screens/Onboarding/GoogleLoginPage';
+import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
+import PermissionsScreen from '../screens/Onboarding/PermissionsScreen';
+import HabitsScreen from '../screens/Onboarding/HabitsScreen';
+import RegistrationScreen from '../screens/Onboarding/RegistrationScreen';
+import HomeScreen from '../screens/Main/HomeScreen';
+import ProfileScreen from '../screens/Main/ProfileScreen';
+import ChatScreen from '../screens/Main/ChatScreen';
+import CalendarScreen from '../screens/Main/CalendarScreen';
+import SettingsScreen from '../screens/Main/SettingsScreen';
+
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+function MainTabs() {
+    return (
+        <Tab.Navigator
+            screenOptions={{
+                tabBarActiveTintColor: '#bb69f2',
+                tabBarInactiveTintColor: '#999',
+                tabBarStyle: {
+                    backgroundColor: '#ffffff',
+                    borderTopWidth: 1,
+                    borderTopColor: '#e9ecef',
+                    height: 80,
+                    paddingBottom: 40,
+                },
+                tabBarLabelStyle: {
+                    fontSize: 12,
+                    fontWeight: '500',
+                },
+            }}
+        >
+            <Tab.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="home-outline" size={size} color={color} />
+                    ),
+                    headerShown: false,
+                    title: 'Главная',
+                }}
+            />
+            <Tab.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="chatbubble-outline" size={size} color={color} />
+                    ),
+                    title: 'Чат',
+                    headerStyle: {
+                        backgroundColor: '#bb69f2',
+                    },
+                    headerTintColor: 'white',
+                }}
+            />
+            <Tab.Screen
+                name="Calendar"
+                component={CalendarScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="calendar-outline" size={size} color={color} />
+                    ),
+                    title: 'Календарь',
+                    headerStyle: {
+                        backgroundColor: '#bb69f2',
+                    },
+                    headerTintColor: 'white',
+                }}
+            />
+            <Tab.Screen
+                name="Profile"
+                component={ProfileScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="person-outline" size={size} color={color} />
+                    ),
+                    title: 'Профиль',
+                    headerStyle: {
+                        backgroundColor: '#bb69f2',
+                    },
+                    headerTintColor: 'white',
+                }}
+            />
+            {/* Добавляем Settings в таб-бар */}
+            <Tab.Screen
+                name="Settings"
+                component={SettingsScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="settings-outline" size={size} color={color} />
+                    ),
+                    title: 'Настройки',
+                    headerStyle: {
+                        backgroundColor: '#bb69f2',
+                    },
+                    headerTintColor: 'white',
+                }}
+            />
+        </Tab.Navigator>
+    );
+}
+
+function OnboardingStack() {
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+                animation: 'slide_from_right',
+            }}
+        >
+            <Stack.Screen
+                name="Welcome"
+                component={WelcomeScreen}
+                options={{
+                    animation: 'fade',
+                }}
+            />
+            <Stack.Screen name="Permissions" component={PermissionsScreen} />
+            <Stack.Screen name="Habits" component={HabitsScreen} />
+            <Stack.Screen name="Registration" component={RegistrationScreen} />
+            <Stack.Screen
+                name="Main"
+                component={MainTabs}
+                options={{
+                    animation: 'slide_from_bottom',
+                }}
+            />
+        </Stack.Navigator>
+    );
+}
+
+export default function AppNavigator() {
+    const [appReady, setAppReady] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+
+    useEffect(() => {
+        checkAuthState();
+    }, []);
+
+    const checkAuthState = async () => {
+        try {
+            const userLoggedIn = await AsyncStorage.getItem('isLoggedIn');
+            const onboardingCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
+
+            console.log('Auth state check:', {
+                userLoggedIn,
+                onboardingCompleted
+            });
+
+            setIsLoggedIn(userLoggedIn === 'true');
+            setHasCompletedOnboarding(onboardingCompleted === 'true');
+        } catch (error) {
+            console.error('Error checking auth state:', error);
+        } finally {
+            setAppReady(true);
+        }
+    };
+
+    if (!appReady) {
+        return null;
+    }
+
+    console.log('Rendering navigator with:', {
+        isLoggedIn,
+        hasCompletedOnboarding
+    });
+
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            {!isLoggedIn ? (
+                // Пользователь не залогинен - показываем только экран входа
+                <Stack.Screen
+                    name="Login"
+                    component={GoogleLoginPage}
+                    options={{
+                        animation: 'fade',
+                    }}
+                />
+            ) : !hasCompletedOnboarding ? (
+                // Пользователь залогинен, но не завершил онбординг
+                <Stack.Screen
+                    name="Onboarding"
+                    component={OnboardingStack}
+                />
+            ) : (
+                // Пользователь залогинен и завершил онбординг - показываем главное приложение
+                <>
+                    <Stack.Screen
+                        name="Main"
+                        component={MainTabs}
+                    />
+                    <Stack.Screen
+                        name="Settings"
+                        component={SettingsScreen}
+                        options={{
+                            headerShown: true,
+                            title: 'Настройки',
+                            headerStyle: {
+                                backgroundColor: '#bb69f2',
+                            },
+                            headerTintColor: 'white',
+                        }}
+                    />
+                </>
+            )}
+        </Stack.Navigator>
+    );
+}
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\screens\Main\CalendarScreen.js                                     ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\screens\Main\CalendarScreen.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export default function CalendarScreen() {
+    const [tasks, setTasks] = useState([]);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+
+    useEffect(() => {
+        loadTasks();
+    }, []);
+
+    const loadTasks = async () => {
+        try {
+            const tasksString = await AsyncStorage.getItem('userTasks');
+            if (tasksString) {
+                setTasks(JSON.parse(tasksString));
+            }
+        } catch (error) {
+            console.error('Error loading tasks:', error);
+        }
+    };
+
+    const getTasksForDate = (date) => {
+        return tasks.filter(task => {
+            const taskDate = new Date(task.createdAt).toDateString();
+            return taskDate === date.toDateString();
+        });
+    };
+
+    const formatDate = (date) => {
+        return date.toLocaleDateString('ru-RU', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    const navigateDate = (days) => {
+        const newDate = new Date(selectedDate);
+        newDate.setDate(newDate.getDate() + days);
+        setSelectedDate(newDate);
+    };
+
+    const todayTasks = getTasksForDate(selectedDate);
+    const completedToday = todayTasks.filter(task => task.completed).length;
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigateDate(-1)} style={styles.navButton}>
+                    <Ionicons name="chevron-back" size={24} color="#333" />
+                </TouchableOpacity>
+
+                <View style={styles.dateContainer}>
+                    <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
+                    <Text style={styles.tasksCounter}>
+                        {completedToday} из {todayTasks.length} задач выполнено
+                    </Text>
+                </View>
+
+                <TouchableOpacity onPress={() => navigateDate(1)} style={styles.navButton}>
+                    <Ionicons name="chevron-forward" size={24} color="#333" />
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.content}>
+                {todayTasks.length === 0 ? (
+                    <View style={styles.emptyState}>
+                        <Ionicons name="calendar-outline" size={64} color="#bb69f2" />
+                        <Text style={styles.emptyText}>Нет задач на этот день</Text>
+                        <Text style={styles.emptySubtext}>
+                            Задачи, созданные на эту дату, появятся здесь
+                        </Text>
+                    </View>
+                ) : (
+                    <View style={styles.tasksList}>
+                        {todayTasks.map((task) => (
+                            <View key={task.id} style={styles.taskItem}>
+                                <View style={[
+                                    styles.statusIndicator,
+                                    task.completed ? styles.completed : styles.pending
+                                ]} />
+                                <Text style={[
+                                    styles.taskText,
+                                    task.completed && styles.taskTextCompleted
+                                ]}>
+                                    {task.text}
+                                </Text>
+                                <View style={styles.taskMeta}>
+                                    <Text style={styles.taskTime}>
+                                        {new Date(task.createdAt).toLocaleTimeString('ru-RU', {
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                    </Text>
+                                    {task.completed && (
+                                        <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+                                    )}
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                )}
+            </ScrollView>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f8f9fa',
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 20,
+        backgroundColor: 'white',
+        borderBottomWidth: 1,
+        borderBottomColor: '#e9ecef',
+    },
+    navButton: {
+        padding: 8,
+    },
+    dateContainer: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    dateText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        textAlign: 'center',
+    },
+    tasksCounter: {
+        fontSize: 14,
+        color: '#bb69f2',
+        marginTop: 4,
+        fontWeight: '500',
+    },
+    content: {
+        flex: 1,
+        padding: 20,
+    },
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 60,
+    },
+    emptyText: {
+        fontSize: 18,
+        color: '#666',
+        marginTop: 16,
+        fontWeight: '500',
+    },
+    emptySubtext: {
+        fontSize: 14,
+        color: '#999',
+        marginTop: 8,
+        textAlign: 'center',
+    },
+    tasksList: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    taskItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    statusIndicator: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        marginRight: 12,
+    },
+    completed: {
+        backgroundColor: '#4CAF50',
+    },
+    pending: {
+        backgroundColor: '#ff9800',
+    },
+    taskText: {
+        flex: 1,
+        fontSize: 16,
+        color: '#333',
+    },
+    taskTextCompleted: {
+        textDecorationLine: 'line-through',
+        color: '#999',
+    },
+    taskMeta: {
+        alignItems: 'flex-end',
+    },
+    taskTime: {
+        fontSize: 12,
+        color: '#999',
+        marginBottom: 4,
+    },
+});
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\screens\Main\ChatScreen.js                                         ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\screens\Main\ChatScreen.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const MoiMoiResponses = [
+    "Привет! Как твои дела? 😊",
+    "Отлично! Не забывай про свои привычки! 💪",
+    "Я здесь, чтобы поддержать тебя! 🌟",
+    "Как прошел твой день? Расскажи мне! 📝",
+    "Помни: маленькие шаги ведут к большим результатам! 🎯",
+    "Ты делаешь прекрасные успехи! Продолжай в том же духе! 🚀",
+    "Не забывай пить воду и делать перерывы! 💧",
+    "Я горжусь тобой! Ты становишься лучше каждый день! 🌈",
+    "Что тебя сегодня порадовало? Поделись! 😄",
+    "Верь в себя! Ты можешь достичь любых целей! 💫"
+];
+
+export default function ChatScreen() {
+    const [messages, setMessages] = useState([]);
+    const [inputText, setInputText] = useState('');
+    const flatListRef = useRef(null);
+
+    useEffect(() => {
+        loadChatHistory();
+        // Автоматическое приветствие от MoiMoi
+        if (messages.length === 0) {
+            setTimeout(() => {
+                addMoiMoiMessage("Привет! Я твой MoiMoi! Готов помочь тебе с привычками и задачами! 😊");
+            }, 1000);
+        }
+    }, []);
+
+    const loadChatHistory = async () => {
+        try {
+            const chatHistory = await AsyncStorage.getItem('chatHistory');
+            if (chatHistory) {
+                setMessages(JSON.parse(chatHistory));
+            }
+        } catch (error) {
+            console.error('Error loading chat history:', error);
+        }
+    };
+
+    const saveChatHistory = async (updatedMessages) => {
+        try {
+            await AsyncStorage.setItem('chatHistory', JSON.stringify(updatedMessages));
+        } catch (error) {
+            console.error('Error saving chat history:', error);
+        }
+    };
+
+    const addMoiMoiMessage = (text) => {
+        const newMessage = {
+            id: Date.now().toString(),
+            text: text,
+            isUser: false,
+            timestamp: new Date().toISOString(),
+        };
+        const updatedMessages = [...messages, newMessage];
+        setMessages(updatedMessages);
+        saveChatHistory(updatedMessages);
+
+        setTimeout(() => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+    };
+
+    const sendMessage = () => {
+        if (inputText.trim()) {
+            // Сообщение пользователя
+            const userMessage = {
+                id: Date.now().toString(),
+                text: inputText.trim(),
+                isUser: true,
+                timestamp: new Date().toISOString(),
+            };
+            const updatedMessages = [...messages, userMessage];
+            setMessages(updatedMessages);
+            saveChatHistory(updatedMessages);
+            setInputText('');
+
+            // Ответ MoiMoi
+            setTimeout(() => {
+                const randomResponse = MoiMoiResponses[Math.floor(Math.random() * MoiMoiResponses.length)];
+                addMoiMoiMessage(randomResponse);
+            }, 1000);
+
+            setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+            }, 100);
+        }
+    };
+
+    const renderMessage = ({ item }) => (
+        <View style={[
+            styles.messageContainer,
+            item.isUser ? styles.userMessage : styles.moiMoiMessage
+        ]}>
+            <View style={[
+                styles.messageBubble,
+                item.isUser ? styles.userBubble : styles.moiMoiBubble
+            ]}>
+                <Text style={[
+                    styles.messageText,
+                    item.isUser ? styles.userMessageText : styles.moiMoiMessageText
+                ]}>
+                    {item.text}
+                </Text>
+            </View>
+            <Text style={styles.timestamp}>
+                {new Date(item.timestamp).toLocaleTimeString('ru-RU', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })}
+            </Text>
+        </View>
+    );
+
+    return (
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <FlatList
+                ref={flatListRef}
+                data={messages}
+                renderItem={renderMessage}
+                keyExtractor={(item) => item.id}
+                style={styles.messagesList}
+                contentContainerStyle={styles.messagesContent}
+                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            />
+
+            <View style={styles.inputContainer}>
+                <TextInput
+                    style={styles.textInput}
+                    value={inputText}
+                    onChangeText={setInputText}
+                    placeholder="Напишите сообщение..."
+                    placeholderTextColor="#999"
+                    multiline
+                    maxLength={500}
+                />
+                <TouchableOpacity
+                    style={[
+                        styles.sendButton,
+                        !inputText.trim() && styles.sendButtonDisabled
+                    ]}
+                    onPress={sendMessage}
+                    disabled={!inputText.trim()}
+                >
+                    <Ionicons
+                        name="send"
+                        size={20}
+                        color={inputText.trim() ? "white" : "#ccc"}
+                    />
+                </TouchableOpacity>
+            </View>
+        </KeyboardAvoidingView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f8f9fa',
+    },
+    messagesList: {
+        flex: 1,
+    },
+    messagesContent: {
+        padding: 16,
+    },
+    messageContainer: {
+        marginBottom: 16,
+        maxWidth: '80%',
+    },
+    userMessage: {
+        alignSelf: 'flex-end',
+        alignItems: 'flex-end',
+    },
+    moiMoiMessage: {
+        alignSelf: 'flex-start',
+        alignItems: 'flex-start',
+    },
+    messageBubble: {
+        padding: 12,
+        borderRadius: 18,
+        marginBottom: 4,
+    },
+    userBubble: {
+        backgroundColor: '#bb69f2',
+        borderBottomRightRadius: 4,
+    },
+    moiMoiBubble: {
+        backgroundColor: 'white',
+        borderBottomLeftRadius: 4,
+        borderWidth: 1,
+        borderColor: '#e9ecef',
+    },
+    messageText: {
+        fontSize: 16,
+        lineHeight: 20,
+    },
+    userMessageText: {
+        color: 'white',
+    },
+    moiMoiMessageText: {
+        color: '#333',
+    },
+    timestamp: {
+        fontSize: 12,
+        color: '#999',
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        padding: 16,
+        backgroundColor: 'white',
+        borderTopWidth: 1,
+        borderTopColor: '#e9ecef',
+    },
+    textInput: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#e9ecef',
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        marginRight: 12,
+        maxHeight: 100,
+        backgroundColor: '#f8f9fa',
+        fontSize: 16,
+    },
+    sendButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#69a4fe',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    sendButtonDisabled: {
+        backgroundColor: '#f0f0f0',
+    },
+});
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\screens\Main\HomeScreen.js                                         ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\screens\Main\HomeScreen.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Modal, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export default function HomeScreen() {
+    const [userName, setUserName] = useState('Пользователь');
+    const [tasks, setTasks] = useState([]);
+    const [showAddTask, setShowAddTask] = useState(false);
+    const [newTask, setNewTask] = useState('');
+    const [userData, setUserData] = useState(null);
+
+    useEffect(() => {
+        loadUserData();
+        loadTasks();
+    }, []);
+
+    const loadUserData = async () => {
+        try {
+            const userDataString = await AsyncStorage.getItem('userData');
+            if (userDataString) {
+                const data = JSON.parse(userDataString);
+                setUserData(data);
+                setUserName(data.name || 'Пользователь');
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    };
+
+    const loadTasks = async () => {
+        try {
+            const tasksString = await AsyncStorage.getItem('userTasks');
+            if (tasksString) {
+                setTasks(JSON.parse(tasksString));
+            }
+        } catch (error) {
+            console.error('Error loading tasks:', error);
+        }
+    };
+
+    const saveTasks = async (updatedTasks) => {
+        try {
+            await AsyncStorage.setItem('userTasks', JSON.stringify(updatedTasks));
+        } catch (error) {
+            console.error('Error saving tasks:', error);
+        }
+    };
+
+    const addTask = () => {
+        if (newTask.trim()) {
+            const task = {
+                id: Date.now().toString(),
+                text: newTask.trim(),
+                completed: false,
+                createdAt: new Date().toISOString(),
+            };
+            const updatedTasks = [...tasks, task];
+            setTasks(updatedTasks);
+            saveTasks(updatedTasks);
+            setNewTask('');
+            setShowAddTask(false);
+        }
+    };
+
+    const toggleTask = (taskId) => {
+        const updatedTasks = tasks.map(task =>
+            task.id === taskId ? { ...task, completed: !task.completed } : task
+        );
+        setTasks(updatedTasks);
+        saveTasks(updatedTasks);
+    };
+
+    const deleteTask = (taskId) => {
+        Alert.alert(
+            'Удалить задачу',
+            'Вы уверены, что хотите удалить эту задачу?',
+            [
+                { text: 'Отмена', style: 'cancel' },
+                {
+                    text: 'Удалить',
+                    style: 'destructive',
+                    onPress: () => {
+                        const updatedTasks = tasks.filter(task => task.id !== taskId);
+                        setTasks(updatedTasks);
+                        saveTasks(updatedTasks);
+                    },
+                },
+            ]
+        );
+    };
+
+    const completedTasks = tasks.filter(task => task.completed).length;
+
+    return (
+        <View style={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+                <Text style={styles.welcomeText}>Добро пожаловать, {userName}! 👋</Text>
+                <Text style={styles.moimoiText}>MoiMoi</Text>
+            </View>
+
+            {/* MoiMoi Animation Section */}
+            <View style={styles.moimoiContainer}>
+                <LottieView
+                    source={require('../../../assets/Animations/moimoi_animation_test.json')}
+                    autoPlay
+                    loop
+                    style={styles.moimoiAnimation}
+                />
+            </View>
+
+            {/* Stats Section */}
+            <View style={styles.statsContainer}>
+                <View style={styles.statItem}>
+                    <Text style={styles.statValue}>Lvl 1</Text>
+                    <Text style={styles.statLabel}>Уровень MoiMoi</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{userData?.moimoiName || 'Moi'}</Text>
+                    <Text style={styles.statLabel}>Имя MoiMoi</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Text style={styles.statValue}>{completedTasks}</Text>
+                    <Text style={styles.statLabel}>Выполнено</Text>
+                </View>
+            </View>
+
+            {/* Tasks Section */}
+            <View style={styles.tasksContainer}>
+                <View style={styles.tasksHeader}>
+                    <Text style={styles.tasksTitle}>Сегодняшние задачи</Text>
+                    <Text style={styles.tasksCounter}>{tasks.length} задач</Text>
+                </View>
+
+                <ScrollView style={styles.tasksList} showsVerticalScrollIndicator={false}>
+                    {tasks.length === 0 ? (
+                        <View style={styles.emptyState}>
+                            <Ionicons name="checkmark-done-circle-outline" size={64} color="#bb69f2" />
+                            <Text style={styles.emptyText}>Пока нет задач</Text>
+                            <Text style={styles.emptySubtext}>Добавьте свою первую задачу!</Text>
+                        </View>
+                    ) : (
+                        tasks.map((task) => (
+                            <View key={task.id} style={styles.taskItem}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.checkbox,
+                                        task.completed && styles.checkboxCompleted
+                                    ]}
+                                    onPress={() => toggleTask(task.id)}
+                                >
+                                    {task.completed && (
+                                        <Ionicons name="checkmark" size={16} color="white" />
+                                    )}
+                                </TouchableOpacity>
+                                <Text style={[
+                                    styles.taskText,
+                                    task.completed && styles.taskTextCompleted
+                                ]}>
+                                    {task.text}
+                                </Text>
+                                <TouchableOpacity
+                                    style={styles.deleteButton}
+                                    onPress={() => deleteTask(task.id)}
+                                >
+                                    <Ionicons name="trash-outline" size={18} color="#ff6b6b" />
+                                </TouchableOpacity>
+                            </View>
+                        ))
+                    )}
+                </ScrollView>
+            </View>
+
+            {/* Floating Action Button */}
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={() => setShowAddTask(true)}
+            >
+                <Ionicons name="add" size={28} color="white" />
+            </TouchableOpacity>
+
+            {/* Add Task Modal */}
+            <Modal
+                visible={showAddTask}
+                animationType="fade"
+                transparent statusBarTranslucent
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Новая задача</Text>
+                        <TextInput
+                            style={styles.taskInput}
+                            placeholder="Введите задачу..."
+                            value={newTask}
+                            onChangeText={setNewTask}
+                            multiline
+                        />
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={styles.cancelButton}
+                                onPress={() => setShowAddTask(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>Отмена</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[
+                                    styles.addButton,
+                                    !newTask.trim() && styles.addButtonDisabled
+                                ]}
+                                onPress={addTask}
+                                disabled={!newTask.trim()}
+                            >
+                                <Text style={styles.addButtonText}>Добавить</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f8f9fa',
+    },
+    header: {
+        padding: 20,
+        paddingTop: 60,
+        backgroundColor: '#bb69f2',
+    },
+    welcomeText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '500',
+    },
+    moimoiText: {
+        color: 'white',
+        fontSize: 32,
+        fontWeight: 'bold',
+        marginTop: 5,
+    },
+    moimoiContainer: {
+        alignItems: 'center',
+        marginTop: -25,
+        marginBottom: 10,
+    },
+    moimoiAnimation: {
+        width: 250,
+        height: 250,
+    },
+    statsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingHorizontal: 20,
+        marginBottom: 20,
+    },
+    statItem: {
+        alignItems: 'center',
+        backgroundColor: 'white',
+        padding: 15,
+        borderRadius: 16,
+        minWidth: 80,
+        shadowColor: '#bb69f2',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    statValue: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 5,
+    },
+    statLabel: {
+        fontSize: 12,
+        color: '#666',
+        fontWeight: '500',
+    },
+    tasksContainer: {
+        flex: 1,
+        backgroundColor: 'white',
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        padding: 20,
+    },
+    tasksHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    tasksTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    tasksCounter: {
+        fontSize: 14,
+        color: '#bb69f2',
+        fontWeight: '600',
+    },
+    tasksList: {
+        flex: 1,
+    },
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 60,
+    },
+    emptyText: {
+        fontSize: 18,
+        color: '#666',
+        marginTop: 16,
+        fontWeight: '500',
+    },
+    emptySubtext: {
+        fontSize: 14,
+        color: '#999',
+        marginTop: 8,
+    },
+    taskItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f8f9fa',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 10,
+        borderLeftWidth: 4,
+        borderLeftColor: '#bb69f2',
+    },
+    checkbox: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: '#bb69f2',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    checkboxCompleted: {
+        backgroundColor: '#bb69f2',
+        borderColor: '#bb69f2',
+    },
+    taskText: {
+        flex: 1,
+        fontSize: 16,
+        color: '#333',
+    },
+    taskTextCompleted: {
+        textDecorationLine: 'line-through',
+        color: '#999',
+    },
+    deleteButton: {
+        padding: 4,
+    },
+    fab: {
+        position: 'absolute',
+        right: 20,
+        bottom: 60,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#69a4fe',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#69a4fe',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 24,
+        width: '100%',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 16,
+        color: '#333',
+        textAlign: 'center',
+    },
+    taskInput: {
+        borderWidth: 1,
+        borderColor: '#e9ecef',
+        borderRadius: 12,
+        padding: 16,
+        fontSize: 16,
+        minHeight: 100,
+        textAlignVertical: 'top',
+        marginBottom: 20,
+        backgroundColor: '#f8f9fa',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    cancelButton: {
+        flex: 1,
+        padding: 16,
+        borderRadius: 12,
+        backgroundColor: '#f8f9fa',
+        marginRight: 10,
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        color: '#666',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    addButton: {
+        flex: 1,
+        padding: 16,
+        borderRadius: 12,
+        backgroundColor: '#69a4fe',
+        marginLeft: 10,
+        alignItems: 'center',
+    },
+    addButtonDisabled: {
+        backgroundColor: '#ccc',
+    },
+    addButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+});
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\screens\Main\ProfileScreen.js                                      ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\screens\Main\ProfileScreen.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Modal, TextInput, BackHandler } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import LottieView from 'lottie-react-native';
+import { BlurView } from 'expo-blur';
+
+export default function ProfileScreen() {
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [friends, setFriends] = useState([]);
+    const [showAddFriendModal, setShowAddFriendModal] = useState(false);
+    const [showAchievementsModal, setShowAchievementsModal] = useState(false);
+    const [showMedalsModal, setShowMedalsModal] = useState(false);
+    const [friendCode, setFriendCode] = useState('');
+    const [streakDays, setStreakDays] = useState(0);
+    const navigation = useNavigation();
+
+    useFocusEffect(
+        React.useCallback(() => {
+            loadUserData();
+            loadFriends();
+            loadStreak();
+        }, [])
+    );
+
+    const loadUserData = async () => {
+        try {
+            const userDataString = await AsyncStorage.getItem('userData');
+            if (userDataString) {
+                setUserData(JSON.parse(userDataString));
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadFriends = async () => {
+        try {
+            const friendsData = await AsyncStorage.getItem('userFriends');
+            if (friendsData) {
+                setFriends(JSON.parse(friendsData));
+            }
+        } catch (error) {
+            console.error('Error loading friends:', error);
+        }
+    };
+
+    const loadStreak = async () => {
+        try {
+            const streakData = await AsyncStorage.getItem('userStreak');
+            const completedTasks = await AsyncStorage.getItem('completedTasksToday');
+
+            let currentStreak = streakData ? parseInt(streakData) : 0;
+
+            // Проверяем, выполнены ли сегодня задачи
+            if (completedTasks === 'true') {
+                const lastActiveDate = await AsyncStorage.getItem('lastActiveDate');
+                const today = new Date().toDateString();
+
+                if (lastActiveDate !== today) {
+                    // Новый день - увеличиваем streak
+                    currentStreak += 1;
+                    await AsyncStorage.setItem('userStreak', currentStreak.toString());
+                    await AsyncStorage.setItem('lastActiveDate', today);
+                }
+            }
+
+            setStreakDays(currentStreak);
+        } catch (error) {
+            console.error('Error loading streak:', error);
+        }
+    };
+
+
+    const handleSettingsPress = () => {
+        const parentNavigation = navigation.getParent();
+        if (parentNavigation) {
+            parentNavigation.navigate('Settings');
+        } else {
+            console.warn('Parent navigator not available');
+            // Альтернативный вариант навигации
+            navigation.navigate('Main', { screen: 'Settings' });
+        }
+    };
+
+    const copyProfileLink = () => {
+        const profileLink = `moimoi://profile/${userData?.id || 'user'}`;
+        Alert.alert('Ссылка скопирована!', `Ваша ссылка: ${profileLink}`);
+    };
+
+    const addFriend = async () => {
+        if (friendCode.trim()) {
+            const newFriend = {
+                id: Date.now().toString(),
+                name: `Друг ${friends.length + 1}`,
+                avatar: null,
+                joinedDate: new Date().toISOString(),
+                level: Math.floor(Math.random() * 10) + 1,
+                code: friendCode,
+                streak: Math.floor(Math.random() * 30) + 1
+            };
+
+            const updatedFriends = [...friends, newFriend];
+            setFriends(updatedFriends);
+            await AsyncStorage.setItem('userFriends', JSON.stringify(updatedFriends));
+            setFriendCode('');
+            setShowAddFriendModal(false);
+            Alert.alert('Успех!', 'Друг добавлен в ваш список');
+        }
+    };
+
+    const achievements = [
+        { id: 1, name: 'Первая привычка', description: 'Создайте свою первую привычку', completed: true, icon: 'star', progress: 100 },
+        { id: 2, name: 'Неделя активности', description: 'Выполняйте задачи 7 дней подряд', completed: true, icon: 'calendar', progress: 100 },
+        { id: 3, name: 'Мастер привычек', description: 'Выполните 30 привычек', completed: false, icon: 'trophy', progress: 45 },
+        { id: 4, name: 'Социальная бабочка', description: 'Добавьте 5 друзей', completed: false, icon: 'people', progress: 20 },
+        { id: 5, name: 'Стратег', description: 'Завершите 10 ударных режимов', completed: false, icon: 'flash', progress: 60 },
+        { id: 6, name: 'Легенда', description: 'Достигните 100-дневного стрика', completed: false, icon: 'diamond', progress: 12 },
+    ];
+
+    const medals = [
+        { id: 1, month: 'Январь', year: '2024', type: 'gold', earned: true, description: 'Золотая медаль за активность' },
+        { id: 2, month: 'Февраль', year: '2024', type: 'gold', earned: true, description: 'Золотая медаль за стрик' },
+        { id: 3, month: 'Март', year: '2024', type: 'silver', earned: true, description: 'Серебряная медаль за друзей' },
+        { id: 4, month: 'Апрель', year: '2024', type: 'bronze', earned: false, description: 'Бронзовая медаль за достижения' },
+        { id: 5, month: 'Май', year: '2024', type: 'gold', earned: false, description: 'Золотая медаль за мастерство' },
+        { id: 6, month: 'Июнь', year: '2024', type: 'silver', earned: false, description: 'Серебряная медаль за прогресс' },
+    ];
+
+    if (loading) {
+        return (
+            <View style={styles.container}>
+                <LottieView
+                    source={require('../../../assets/Animations/loading.json')}
+                    autoPlay
+                    loop
+                    style={styles.animation}
+                />
+                <Text style={styles.loadingText}>Загрузка профиля...</Text>
+            </View>
+        );
+    }
+
+    if (!userData) {
+        return (
+            <View style={styles.container}>
+                <LottieView
+                    source={require('../../../assets/Animations/Error.json')}
+                    autoPlay
+                    loop
+                    style={styles.animation}
+                />
+                <Text style={styles.emptyText}>Данные профиля не найдены</Text>
+                <TouchableOpacity style={styles.retryButton} onPress={loadUserData}>
+                    <Text style={styles.retryButtonText}>Попробовать снова</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.container}>
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                {/* Header с аватаром по центру */}
+                <View style={styles.header}>
+
+
+                    <View style={styles.avatarContainer}>
+                        {userData.avatar ? (
+                            <Image source={{ uri: userData.avatar }} style={styles.avatar} />
+                        ) : (
+                            <View style={styles.avatarPlaceholder}>
+                                <Ionicons name="person" size={50} color="#bb69f2" />
+                            </View>
+                        )}
+                    </View>
+
+                    <View style={styles.userInfo}>
+                        <Text style={styles.userName}>{userData.name}</Text>
+                        <Text style={styles.userLevel}>Уровень 5 • {userData.moimoiName || 'Moi'}</Text>
+                    </View>
+
+                    {/* Ударный режим - стрик */}
+                    <View style={styles.streakContainer}>
+                        <View style={styles.streakContent}>
+                            <Ionicons name="flame" size={24} color="#FF6B35" />
+                            <View style={styles.streakInfo}>
+                                <Text style={styles.streakDays}>{streakDays} дней</Text>
+                                <Text style={styles.streakLabel}>Текущий стрик</Text>
+                            </View>
+                        </View>
+                        <View style={styles.streakFire}></View>
+                    </View>
+                </View>
+
+                {/* Блок с ударными режимами */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Ударные режимы ⚡</Text>
+                    <View style={styles.modesContainer}>
+                        <TouchableOpacity style={styles.modeCard}>
+                            <View style={styles.modeIconContainer}>
+                                <Ionicons name="flash" size={28} color="#FF6B6B" />
+                            </View>
+                            <Text style={styles.modeText}>Интенсив</Text>
+                            <Text style={styles.modeSubtext}>15 мин</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.modeCard}>
+                            <View style={styles.modeIconContainer}>
+                                <Ionicons name="time" size={28} color="#4ECDC4" />
+                            </View>
+                            <Text style={styles.modeText}>Ежедневный</Text>
+                            <Text style={styles.modeSubtext}>5 мин</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.modeCard}>
+                            <View style={styles.modeIconContainer}>
+                                <Ionicons name="trophy" size={28} color="#FFD93D" />
+                            </View>
+                            <Text style={styles.modeText}>Соревнование</Text>
+                            <Text style={styles.modeSubtext}>С друзьями</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Блок с друзьями */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Друзья 👥</Text>
+                        <TouchableOpacity style={styles.addButton} onPress={() => setShowAddFriendModal(true)}>
+                            <Ionicons name="add" size={20} color="#bb69f2" />
+                            <Text style={styles.addButtonText}>Добавить</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity style={styles.shareCard} onPress={copyProfileLink}>
+                        <View style={styles.shareIcon}>
+                            <Ionicons name="link" size={20} color="#bb69f2" />
+                        </View>
+                        <Text style={styles.shareText}>Скопировать ссылку на профиль</Text>
+                        <Ionicons name="chevron-forward" size={16} color="#999" />
+                    </TouchableOpacity>
+
+                    <View style={styles.friendsContainer}>
+                        {friends.length > 0 ? (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.friendsScroll}>
+                                {friends.map((friend, index) => (
+                                    <View key={friend.id} style={styles.friendCircle}>
+                                        <View style={styles.friendAvatar}>
+                                            <Ionicons name="person" size={20} color="#666" />
+                                        </View>
+                                        <Text style={styles.friendName} numberOfLines={1}>
+                                            {friend.name}
+                                        </Text>
+                                        <View style={styles.friendStreak}>
+                                            <Ionicons name="flame" size={12} color="#FF6B35" />
+                                            <Text style={styles.friendStreakText}>{friend.streak}</Text>
+                                        </View>
+                                    </View>
+                                ))}
+                                {/* Пустые кружки для добавления */}
+                                {Array.from({ length: Math.max(0, 6 - friends.length) }).map((_, index) => (
+                                    <View key={`empty-${index}`} style={styles.emptyFriendCircle}>
+                                        <Ionicons name="person-add" size={20} color="#ccc" />
+                                        <Text style={styles.emptyFriendText}>Добавить</Text>
+                                    </View>
+                                ))}
+                            </ScrollView>
+                        ) : (
+                            <View style={styles.emptyFriends}>
+                                <View style={styles.emptyFriendsCircles}>
+                                    {Array.from({ length: 3 }).map((_, index) => (
+                                        <View key={index} style={styles.emptyFriendCircle}>
+                                            <View style={styles.dashedBorder}>
+                                                <Ionicons name="person-add" size={20} color="#ccc" />
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                                <Text style={styles.emptyFriendsText}>Пока нет друзей</Text>
+                                <Text style={styles.emptyFriendsSubtext}>Добавьте друзей для соревнований</Text>
+                            </View>
+                        )}
+                    </View>
+                </View>
+
+                {/* Блок с медалями */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Медали 🏅</Text>
+                        <TouchableOpacity onPress={() => setShowMedalsModal(true)}>
+                            <Text style={styles.seeAllText}>Все медали</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.medalsContainer}>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.medalsScroll}>
+                            {medals.slice(0, 4).map((medal) => (
+                                <View key={medal.id} style={[styles.medalCard, !medal.earned && styles.medalCardLocked]}>
+                                    <View style={styles.medalIconContainer}>
+                                        <Ionicons
+                                            name={medal.earned ? "medal" : "lock-closed"}
+                                            size={32}
+                                            color={medal.earned ?
+                                                (medal.type === 'gold' ? '#FFD700' :
+                                                    medal.type === 'silver' ? '#C0C0C0' : '#CD7F32') : '#ccc'
+                                            }
+                                        />
+                                    </View>
+                                    <Text style={styles.medalMonth}>{medal.month}</Text>
+                                    <Text style={styles.medalYear}>{medal.year}</Text>
+                                    <Text style={styles.medalType}>
+                                        {medal.earned ? (medal.type === 'gold' ? 'Золото' : medal.type === 'silver' ? 'Серебро' : 'Бронза') : 'Заблокировано'}
+                                    </Text>
+                                </View>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </View>
+
+                {/* Блок с достижениями */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Достижения 🏆</Text>
+                        <TouchableOpacity onPress={() => setShowAchievementsModal(true)}>
+                            <Text style={styles.seeAllText}>Все достижения</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <View style={styles.achievementsGrid}>
+                        {achievements.slice(0, 4).map((achievement) => (
+                            <View key={achievement.id} style={styles.achievementCard}>
+                                <View style={[
+                                    styles.achievementIcon,
+                                    !achievement.completed && styles.achievementIconLocked
+                                ]}>
+                                    <Ionicons
+                                        name={achievement.icon}
+                                        size={24}
+                                        color={achievement.completed ? 'white' : '#ccc'}
+                                    />
+                                </View>
+                                <Text style={[
+                                    styles.achievementName,
+                                    !achievement.completed && styles.achievementNameLocked
+                                ]}>
+                                    {achievement.name}
+                                </Text>
+                                <View style={styles.progressBar}>
+                                    <View
+                                        style={[
+                                            styles.progressFill,
+                                            { width: `${achievement.progress}%` }
+                                        ]}
+                                    />
+                                </View>
+                                <Text style={styles.progressText}>{achievement.progress}%</Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+            </ScrollView>
+
+            {/* Модальное окно добавления друга */}
+            <Modal visible={showAddFriendModal} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Добавить друга</Text>
+                        <Text style={styles.modalSubtitle}>Введите код друга чтобы добавить его в свой список</Text>
+
+                        <View style={styles.inputContainer}>
+                            <Ionicons name="person" size={20} color="#bb69f2" />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Код друга"
+                                value={friendCode}
+                                onChangeText={setFriendCode}
+                                placeholderTextColor="#999"
+                            />
+                        </View>
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={styles.cancelButton}
+                                onPress={() => setShowAddFriendModal(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>Отмена</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.addFriendButton, !friendCode.trim() && styles.buttonDisabled]}
+                                onPress={addFriend}
+                                disabled={!friendCode.trim()}
+                            >
+                                <Text style={styles.addFriendButtonText}>Добавить друга</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </BlurView>
+            </Modal>
+
+            {/* Модальное окно достижений */}
+            <Modal visible={showAchievementsModal} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={styles.modalContentLarge}>
+                        <Text style={styles.modalTitle}>Все достижения</Text>
+
+                        <ScrollView style={styles.achievementsList} showsVerticalScrollIndicator={false}>
+                            {achievements.map((achievement) => (
+                                <View key={achievement.id} style={styles.achievementListItem}>
+                                    <View style={[
+                                        styles.achievementListIcon,
+                                        achievement.completed && styles.achievementListIconCompleted
+                                    ]}>
+                                        <Ionicons
+                                            name={achievement.icon}
+                                            size={20}
+                                            color={achievement.completed ? 'white' : '#ccc'}
+                                        />
+                                    </View>
+                                    <View style={styles.achievementInfo}>
+                                        <Text style={styles.achievementListName}>{achievement.name}</Text>
+                                        <Text style={styles.achievementListDescription}>
+                                            {achievement.description}
+                                        </Text>
+                                        <View style={styles.progressBar}>
+                                            <View
+                                                style={[
+                                                    styles.progressFill,
+                                                    { width: `${achievement.progress}%` }
+                                                ]}
+                                            />
+                                        </View>
+                                    </View>
+                                    <View style={styles.achievementProgress}>
+                                        <Text style={styles.progressPercentage}>{achievement.progress}%</Text>
+                                        {achievement.completed && (
+                                            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                                        )}
+                                    </View>
+                                </View>
+                            ))}
+                        </ScrollView>
+
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setShowAchievementsModal(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Закрыть</Text>
+                        </TouchableOpacity>
+                    </View>
+                </BlurView>
+            </Modal>
+
+            {/* Модальное окно медалей */}
+            <Modal visible={showMedalsModal} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={styles.modalContentLarge}>
+                        <Text style={styles.modalTitle}>Все медали</Text>
+                        <Text style={styles.modalSubtitle}>Ваши ежемесячные награды за активность</Text>
+
+                        <ScrollView style={styles.medalsList} showsVerticalScrollIndicator={false}>
+                            <View style={styles.medalsGrid}>
+                                {medals.map((medal) => (
+                                    <View key={medal.id} style={styles.medalListItem}>
+                                        <View style={styles.medalIconLarge}>
+                                            <Ionicons
+                                                name={medal.earned ? "medal" : "lock-closed"}
+                                                size={40}
+                                                color={medal.earned ?
+                                                    (medal.type === 'gold' ? '#FFD700' :
+                                                        medal.type === 'silver' ? '#C0C0C0' : '#CD7F32') : '#ccc'
+                                                }
+                                            />
+                                        </View>
+                                        <View style={styles.medalInfo}>
+                                            <Text style={styles.medalListName}>
+                                                {medal.month} {medal.year}
+                                            </Text>
+                                            <Text style={styles.medalListDescription}>
+                                                {medal.description}
+                                            </Text>
+                                            <Text style={[
+                                                styles.medalListType,
+                                                {
+                                                    color: medal.earned ?
+                                                        (medal.type === 'gold' ? '#FFD700' :
+                                                            medal.type === 'silver' ? '#C0C0C0' : '#CD7F32') : '#ccc'
+                                                }
+                                            ]}>
+                                                {medal.earned ?
+                                                    (medal.type === 'gold' ? 'Золотая медаль' :
+                                                        medal.type === 'silver' ? 'Серебряная медаль' : 'Бронзовая медаль') :
+                                                    'Заблокировано'
+                                                }
+                                            </Text>
+                                        </View>
+                                    </View>
+                                ))}
+                            </View>
+                        </ScrollView>
+
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setShowMedalsModal(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Закрыть</Text>
+                        </TouchableOpacity>
+                    </View>
+                </BlurView>
+            </Modal>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f8f9fa',
+    },
+    scrollView: {
+        flex: 1,
+    },
+    header: {
+        backgroundColor: 'white',
+        padding: 25,
+        alignItems: 'center',
+        borderBottomLeftRadius: 25,
+        borderBottomRightRadius: 25,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 5,
+    },
+    settingsButton: {
+        position: 'absolute',
+        top: 60,
+        right: 25,
+        padding: 8,
+        borderRadius: 20,
+        backgroundColor: '#f8f9fa',
+    },
+    avatarContainer: {
+        marginBottom: 15,
+    },
+    avatar: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+    },
+    avatarPlaceholder: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#f0e6ff',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    userInfo: {
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    userName: {
+        fontSize: 26,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 5,
+    },
+    userLevel: {
+        fontSize: 16,
+        color: '#666',
+        fontWeight: '500',
+    },
+    streakContainer: {
+        backgroundColor: '#FFF5F0',
+        padding: 15,
+        borderRadius: 16,
+        width: '100%',
+        borderWidth: 2,
+        borderColor: '#FF6B35',
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    streakContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        zIndex: 2,
+    },
+    streakInfo: {
+        marginLeft: 12,
+    },
+    streakDays: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#FF6B35',
+    },
+    streakLabel: {
+        fontSize: 14,
+        color: '#666',
+    },
+    streakFire: {
+        position: 'absolute',
+        top: -10,
+        right: -10,
+        width: 60,
+        height: 60,
+        backgroundColor: '#FF6B35',
+        borderRadius: 30,
+        opacity: 0.1,
+    },
+    section: {
+        marginTop: 25,
+        paddingHorizontal: 20,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 10,
+    },
+    seeAllText: {
+        color: '#bb69f2',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    modesContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    modeCard: {
+        flex: 1,
+        backgroundColor: 'white',
+        padding: 18,
+        borderRadius: 16,
+        alignItems: 'center',
+        marginHorizontal: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 4,
+    },
+    modeIconContainer: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#f8f9fa',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    modeText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 4,
+    },
+    modeSubtext: {
+        fontSize: 12,
+        color: '#666',
+    },
+    addButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f0e6ff',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+    },
+    addButtonText: {
+        color: '#bb69f2',
+        fontSize: 14,
+        fontWeight: '500',
+        marginLeft: 4,
+    },
+    shareCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        padding: 16,
+        borderRadius: 16,
+        marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    shareIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#f0e6ff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    shareText: {
+        flex: 1,
+        fontSize: 16,
+        color: '#333',
+        fontWeight: '500',
+    },
+    friendsContainer: {
+        marginBottom: 10,
+    },
+    friendsScroll: {
+        marginHorizontal: -5,
+    },
+    friendCircle: {
+        alignItems: 'center',
+        marginHorizontal: 8,
+        width: 70,
+    },
+    friendAvatar: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#f8f9fa',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
+        borderWidth: 2,
+        borderColor: '#bb69f2',
+    },
+    friendName: {
+        fontSize: 11,
+        fontWeight: '500',
+        color: '#333',
+        textAlign: 'center',
+        marginBottom: 4,
+    },
+    friendStreak: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFF5F0',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 10,
+    },
+    friendStreakText: {
+        fontSize: 10,
+        color: '#FF6B35',
+        fontWeight: '600',
+        marginLeft: 2,
+    },
+    emptyFriendCircle: {
+        alignItems: 'center',
+        marginHorizontal: 8,
+        width: 70,
+    },
+    dashedBorder: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        borderWidth: 2,
+        borderColor: '#ccc',
+        borderStyle: 'dashed',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    emptyFriendText: {
+        fontSize: 11,
+        color: '#999',
+        textAlign: 'center',
+    },
+    emptyFriends: {
+        alignItems: 'center',
+        padding: 30,
+        backgroundColor: 'white',
+        borderRadius: 16,
+    },
+    emptyFriendsCircles: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        marginBottom: 20,
+    },
+    emptyFriendsText: {
+        fontSize: 16,
+        color: '#666',
+        marginBottom: 5,
+    },
+    emptyFriendsSubtext: {
+        fontSize: 12,
+        color: '#999',
+        textAlign: 'center',
+    },
+    medalsContainer: {
+        backgroundColor: 'white',
+        borderRadius: 16,
+        padding: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    medalsScroll: {
+        marginHorizontal: -5,
+    },
+    medalCard: {
+        alignItems: 'center',
+        marginHorizontal: 10,
+        padding: 15,
+        backgroundColor: '#f8f9fa',
+        borderRadius: 12,
+        minWidth: 100,
+    },
+    medalCardLocked: {
+        opacity: 0.6,
+    },
+    medalIconContainer: {
+        marginBottom: 8,
+    },
+    medalMonth: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 2,
+    },
+    medalYear: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 4,
+    },
+    medalType: {
+        fontSize: 10,
+        color: '#999',
+        fontWeight: '500',
+    },
+    achievementsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    achievementCard: {
+        width: '48%',
+        backgroundColor: 'white',
+        padding: 15,
+        borderRadius: 16,
+        alignItems: 'center',
+        marginBottom: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    achievementIcon: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#bb69f2',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    achievementIconLocked: {
+        backgroundColor: '#f0f0f0',
+    },
+    achievementName: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    achievementNameLocked: {
+        color: '#ccc',
+    },
+    progressBar: {
+        width: '100%',
+        height: 4,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 2,
+        marginBottom: 4,
+        overflow: 'hidden',
+    },
+    progressFill: {
+        height: '100%',
+        backgroundColor: '#bb69f2',
+        borderRadius: 2,
+    },
+    progressText: {
+        fontSize: 10,
+        color: '#666',
+        fontWeight: '500',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 25,
+        padding: 25,
+        width: '100%',
+        maxWidth: 400,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    modalContentLarge: {
+        backgroundColor: 'white',
+        borderRadius: 25,
+        padding: 25,
+        width: '100%',
+        maxWidth: 400,
+        maxHeight: '80%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    modalSubtitle: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+        marginBottom: 25,
+        lineHeight: 20,
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f8f9fa',
+        borderRadius: 16,
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+        marginBottom: 25,
+    },
+    input: {
+        flex: 1,
+        fontSize: 16,
+        color: '#333',
+        marginLeft: 10,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    cancelButton: {
+        flex: 1,
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: '#f8f9fa',
+        marginRight: 10,
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        color: '#666',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    addFriendButton: {
+        flex: 1,
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: '#bb69f2',
+        marginLeft: 10,
+        alignItems: 'center',
+    },
+    buttonDisabled: {
+        backgroundColor: '#ccc',
+    },
+    addFriendButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    achievementsList: {
+        maxHeight: 400,
+    },
+    achievementListItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 15,
+        backgroundColor: '#f8f9fa',
+        borderRadius: 16,
+        marginBottom: 10,
+    },
+    achievementListIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#f0f0f0',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+    },
+    achievementListIconCompleted: {
+        backgroundColor: '#bb69f2',
+    },
+    achievementInfo: {
+        flex: 1,
+    },
+    achievementListName: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 4,
+    },
+    achievementListDescription: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 8,
+    },
+    achievementProgress: {
+        alignItems: 'flex-end',
+    },
+    progressPercentage: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 4,
+    },
+    medalsList: {
+        maxHeight: 400,
+    },
+    medalsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    medalListItem: {
+        width: '48%',
+        alignItems: 'center',
+        padding: 15,
+        backgroundColor: '#f8f9fa',
+        borderRadius: 16,
+        marginBottom: 15,
+    },
+    medalIconLarge: {
+        marginBottom: 10,
+    },
+    medalInfo: {
+        alignItems: 'center',
+    },
+    medalListName: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 4,
+    },
+    medalListDescription: {
+        fontSize: 11,
+        color: '#666',
+        textAlign: 'center',
+        marginBottom: 4,
+    },
+    medalListType: {
+        fontSize: 10,
+        fontWeight: '500',
+    },
+    closeButton: {
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: '#bb69f2',
+        alignItems: 'center',
+        marginTop: 15,
+    },
+    closeButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    animation: {
+        width: 200,
+        height: 200,
+        marginBottom: 20,
+    },
+    loadingText: {
+        fontSize: 16,
+        color: '#666',
+    },
+    emptyText: {
+        fontSize: 18,
+        color: '#666',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    retryButton: {
+        backgroundColor: '#bb69f2',
+        paddingHorizontal: 30,
+        paddingVertical: 12,
+        borderRadius: 25,
+    },
+    retryButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+});
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\screens\Main\SettingsScreen.js                                     ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\screens\Main\SettingsScreen.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, TextInput, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+
+export default function SettingsScreen() {
+    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [dailyReminders, setDailyReminders] = useState(true);
+    const [soundEnabled, setSoundEnabled] = useState(true);
+    const [vibrationEnabled, setVibrationEnabled] = useState(true);
+    const [animationsEnabled, setAnimationsEnabled] = useState(true);
+    const [effectsEnabled, setEffectsEnabled] = useState(true);
+    const [darkMode, setDarkMode] = useState(false);
+
+    const [showEditProfile, setShowEditProfile] = useState(false);
+    const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+    const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+    const [showAppearanceModal, setShowAppearanceModal] = useState(false);
+
+    const [userData, setUserData] = useState(null);
+    const [editedName, setEditedName] = useState('');
+    const [editedAge, setEditedAge] = useState('');
+    const [editedMoiMoiName, setEditedMoiMoiName] = useState('');
+
+    const navigation = useNavigation();
+
+    useEffect(() => {
+        loadUserData();
+    }, []);
+
+    const loadUserData = async () => {
+        try {
+            const userDataString = await AsyncStorage.getItem('userData');
+            if (userDataString) {
+                const data = JSON.parse(userDataString);
+                setUserData(data);
+                setEditedName(data.name || '');
+                setEditedAge(data.age?.toString() || '');
+                setEditedMoiMoiName(data.moimoiName || '');
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        }
+    };
+
+    const saveUserData = async () => {
+        try {
+            const updatedData = {
+                ...userData,
+                name: editedName,
+                age: parseInt(editedAge) || 0,
+                moimoiName: editedMoiMoiName,
+                updatedAt: new Date().toISOString()
+            };
+
+            await AsyncStorage.setItem('userData', JSON.stringify(updatedData));
+            setUserData(updatedData);
+            setShowEditProfile(false);
+            Alert.alert('Успех!', 'Профиль обновлен');
+        } catch (error) {
+            console.error('Error saving user data:', error);
+            Alert.alert('Ошибка', 'Не удалось сохранить изменения');
+        }
+    };
+
+    const handleLogout = () => {
+        Alert.alert(
+            'Выход',
+            'Вы уверены, что хотите выйти из аккаунта?',
+            [
+                { text: 'Отмена', style: 'cancel' },
+                {
+                    text: 'Выйти',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await AsyncStorage.multiRemove(['isLoggedIn', 'userData', 'hasLaunched']);
+                            navigation.reset({
+                                index: 0,
+                                routes: [{ name: 'Welcome' }],
+                            });
+                        } catch (error) {
+                            console.error('Error during logout:', error);
+                        }
+                    },
+                },
+            ]
+        );
+    };
+
+    const settingsSections = [
+        {
+            title: 'Профиль',
+            icon: 'person-outline',
+            items: [
+                {
+                    label: 'Редактировать профиль',
+                    description: 'Изменить имя, возраст и другие данные',
+                    type: 'link',
+                    onPress: () => setShowEditProfile(true),
+                    icon: 'create-outline'
+                },
+                {
+                    label: 'Мой MoiMoi',
+                    description: 'Настройки вашего помощника',
+                    type: 'link',
+                    onPress: () => { },
+                    icon: 'sparkles-outline'
+                }
+            ]
+        },
+        {
+            title: 'Уведомления',
+            icon: 'notifications-outline',
+            items: [
+                {
+                    label: 'Настройки уведомлений',
+                    description: 'Управление push-уведомлениями',
+                    type: 'link',
+                    onPress: () => setShowNotificationsModal(true),
+                    icon: 'notifications-outline'
+                },
+                {
+                    label: 'Включить уведомления',
+                    value: notificationsEnabled,
+                    onValueChange: setNotificationsEnabled,
+                    type: 'switch',
+                    icon: 'notifications'
+                },
+                {
+                    label: 'Ежедневные напоминания',
+                    value: dailyReminders,
+                    onValueChange: setDailyReminders,
+                    type: 'switch',
+                    icon: 'alarm-outline'
+                },
+                {
+                    label: 'Звук уведомлений',
+                    value: soundEnabled,
+                    onValueChange: setSoundEnabled,
+                    type: 'switch',
+                    icon: 'volume-medium-outline'
+                },
+                {
+                    label: 'Вибрация',
+                    value: vibrationEnabled,
+                    onValueChange: setVibrationEnabled,
+                    type: 'switch',
+                    icon: 'phone-portrait-outline'
+                }
+            ]
+        },
+        {
+            title: 'Внешний вид',
+            icon: 'color-palette-outline',
+            items: [
+                {
+                    label: 'Настройки оформления',
+                    description: 'Темы, цвета и шрифты',
+                    type: 'link',
+                    onPress: () => setShowAppearanceModal(true),
+                    icon: 'brush-outline'
+                },
+                {
+                    label: 'Темная тема',
+                    value: darkMode,
+                    onValueChange: setDarkMode,
+                    type: 'switch',
+                    icon: 'moon-outline'
+                },
+                {
+                    label: 'Анимации',
+                    value: animationsEnabled,
+                    onValueChange: setAnimationsEnabled,
+                    type: 'switch',
+                    icon: 'play-outline'
+                },
+                {
+                    label: 'Эффекты',
+                    value: effectsEnabled,
+                    onValueChange: setEffectsEnabled,
+                    type: 'switch',
+                    icon: 'sparkles-outline'
+                }
+            ]
+        },
+        {
+            title: 'Конфиденциальность',
+            icon: 'shield-checkmark-outline',
+            items: [
+                {
+                    label: 'Настройки приватности',
+                    description: 'Управление данными и доступом',
+                    type: 'link',
+                    onPress: () => setShowPrivacyModal(true),
+                    icon: 'lock-closed-outline'
+                },
+                {
+                    label: 'Политика конфиденциальности',
+                    type: 'link',
+                    onPress: () => { },
+                    icon: 'document-text-outline'
+                },
+                {
+                    label: 'Условия использования',
+                    type: 'link',
+                    onPress: () => { },
+                    icon: 'reader-outline'
+                }
+            ]
+        },
+        {
+            title: 'О приложении',
+            icon: 'information-circle-outline',
+            items: [
+                {
+                    label: 'Версия',
+                    value: '1.0.0',
+                    type: 'value',
+                    icon: 'logo-react'
+                },
+                {
+                    label: 'Обратная связь',
+                    type: 'link',
+                    onPress: () => { },
+                    icon: 'chatbubble-outline'
+                },
+                {
+                    label: 'Оценить приложение',
+                    type: 'link',
+                    onPress: () => { },
+                    icon: 'star-outline'
+                },
+                {
+                    label: 'Поделиться приложением',
+                    type: 'link',
+                    onPress: () => { },
+                    icon: 'share-social-outline'
+                }
+            ]
+        }
+    ];
+
+    return (
+        <View style={styles.container}>
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <View style={styles.header}>
+                    <Text style={styles.headerTitle}>Настройки</Text>
+                    <Text style={styles.headerSubtitle}>Управление приложением и профилем</Text>
+                </View>
+
+                {settingsSections.map((section, sectionIndex) => (
+                    <View key={sectionIndex} style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <View style={styles.sectionTitleContainer}>
+                                <Ionicons name={section.icon} size={22} color="#bb69f2" />
+                                <Text style={styles.sectionTitle}>{section.title}</Text>
+                            </View>
+                        </View>
+
+                        <View style={styles.sectionContent}>
+                            {section.items.map((item, itemIndex) => (
+                                <TouchableOpacity
+                                    key={itemIndex}
+                                    style={styles.settingItem}
+                                    onPress={item.onPress}
+                                    disabled={!item.onPress}
+                                >
+                                    <View style={styles.settingLeft}>
+                                        {item.icon && (
+                                            <Ionicons
+                                                name={item.icon}
+                                                size={20}
+                                                color="#bb69f2"
+                                                style={styles.settingIcon}
+                                            />
+                                        )}
+                                        <View style={styles.settingTextContainer}>
+                                            <Text style={styles.settingLabel}>{item.label}</Text>
+                                            {item.description && (
+                                                <Text style={styles.settingDescription}>{item.description}</Text>
+                                            )}
+                                        </View>
+                                    </View>
+
+                                    {item.type === 'switch' && (
+                                        <Switch
+                                            value={item.value}
+                                            onValueChange={item.onValueChange}
+                                            trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                            thumbColor={item.value ? '#ffffff' : '#f4f3f4'}
+                                        />
+                                    )}
+
+                                    {item.type === 'value' && (
+                                        <Text style={styles.settingValue}>{item.value}</Text>
+                                    )}
+
+                                    {(item.type === 'link' || !item.type) && (
+                                        <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+                ))}
+
+                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                    <Ionicons name="log-out-outline" size={20} color="#ff6b6b" />
+                    <Text style={styles.logoutText}>Выйти из аккаунта</Text>
+                </TouchableOpacity>
+            </ScrollView>
+
+            {/* Модальное окно редактирования профиля */}
+            <Modal visible={showEditProfile} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Редактировать профиль</Text>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.inputLabel}>Имя</Text>
+                            <View style={styles.inputContainer}>
+                                <Ionicons name="person-outline" size={20} color="#bb69f2" />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Введите ваше имя"
+                                    value={editedName}
+                                    onChangeText={setEditedName}
+                                    placeholderTextColor="#999"
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.inputLabel}>Возраст</Text>
+                            <View style={styles.inputContainer}>
+                                <Ionicons name="calendar-outline" size={20} color="#bb69f2" />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Введите ваш возраст"
+                                    value={editedAge}
+                                    onChangeText={setEditedAge}
+                                    keyboardType="numeric"
+                                    placeholderTextColor="#999"
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.inputLabel}>Имя MoiMoi</Text>
+                            <View style={styles.inputContainer}>
+                                <Ionicons name="sparkles-outline" size={20} color="#bb69f2" />
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Имя вашего помощника"
+                                    value={editedMoiMoiName}
+                                    onChangeText={setEditedMoiMoiName}
+                                    placeholderTextColor="#999"
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={styles.cancelButton}
+                                onPress={() => setShowEditProfile(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>Отмена</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.saveButton}
+                                onPress={saveUserData}
+                            >
+                                <Text style={styles.saveButtonText}>Сохранить</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </BlurView>
+            </Modal>
+
+            {/* Модальное окно уведомлений */}
+            <Modal visible={showNotificationsModal} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={styles.modalContentLarge}>
+                        <Text style={styles.modalTitle}>Настройки уведомлений</Text>
+                        <Text style={styles.modalSubtitle}>Управление push-уведомлениями и напоминаниями</Text>
+
+                        <View style={styles.modalSection}>
+                            <Text style={styles.modalSectionTitle}>Основные уведомления</Text>
+                            <View style={styles.modalSettingItem}>
+                                <View style={styles.modalSettingLeft}>
+                                    <Ionicons name="notifications" size={20} color="#bb69f2" />
+                                    <Text style={styles.modalSettingLabel}>Включить уведомления</Text>
+                                </View>
+                                <Switch
+                                    value={notificationsEnabled}
+                                    onValueChange={setNotificationsEnabled}
+                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                    thumbColor={notificationsEnabled ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.modalSection}>
+                            <Text style={styles.modalSectionTitle}>Напоминания</Text>
+                            <View style={styles.modalSettingItem}>
+                                <View style={styles.modalSettingLeft}>
+                                    <Ionicons name="alarm-outline" size={20} color="#bb69f2" />
+                                    <Text style={styles.modalSettingLabel}>Ежедневные напоминания</Text>
+                                </View>
+                                <Switch
+                                    value={dailyReminders}
+                                    onValueChange={setDailyReminders}
+                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                    thumbColor={dailyReminders ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={styles.modalSection}>
+                            <Text style={styles.modalSectionTitle}>Звук и вибрация</Text>
+                            <View style={styles.modalSettingItem}>
+                                <View style={styles.modalSettingLeft}>
+                                    <Ionicons name="volume-medium-outline" size={20} color="#bb69f2" />
+                                    <Text style={styles.modalSettingLabel}>Звук уведомлений</Text>
+                                </View>
+                                <Switch
+                                    value={soundEnabled}
+                                    onValueChange={setSoundEnabled}
+                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                    thumbColor={soundEnabled ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                            <View style={styles.modalSettingItem}>
+                                <View style={styles.modalSettingLeft}>
+                                    <Ionicons name="phone-portrait-outline" size={20} color="#bb69f2" />
+                                    <Text style={styles.modalSettingLabel}>Вибрация</Text>
+                                </View>
+                                <Switch
+                                    value={vibrationEnabled}
+                                    onValueChange={setVibrationEnabled}
+                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                    thumbColor={vibrationEnabled ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setShowNotificationsModal(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Готово</Text>
+                        </TouchableOpacity>
+                    </View>
+                </BlurView>
+            </Modal>
+
+            {/* Модальное окно конфиденциальности */}
+            <Modal visible={showPrivacyModal} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={styles.modalContentLarge}>
+                        <Text style={styles.modalTitle}>Конфиденциальность</Text>
+                        <Text style={styles.modalSubtitle}>Управление вашими данными и приватностью</Text>
+
+                        <View style={styles.privacySection}>
+                            <Text style={styles.privacySectionTitle}>Данные профиля</Text>
+                            <View style={styles.privacyItem}>
+                                <Ionicons name="eye-outline" size={20} color="#bb69f2" />
+                                <View style={styles.privacyText}>
+                                    <Text style={styles.privacyLabel}>Видимость профиля</Text>
+                                    <Text style={styles.privacyDescription}>Кто может видеть ваш профиль</Text>
+                                </View>
+                                <Text style={styles.privacyValue}>Все</Text>
+                            </View>
+                            <View style={styles.privacyItem}>
+                                <Ionicons name="people-outline" size={20} color="#bb69f2" />
+                                <View style={styles.privacyText}>
+                                    <Text style={styles.privacyLabel}>Друзья</Text>
+                                    <Text style={styles.privacyDescription}>Кто может добавлять вас в друзья</Text>
+                                </View>
+                                <Text style={styles.privacyValue}>Все</Text>
+                            </View>
+                        </View>
+
+                        <View style={styles.privacySection}>
+                            <Text style={styles.privacySectionTitle}>Данные приложения</Text>
+                            <View style={styles.privacyItem}>
+                                <Ionicons name="analytics-outline" size={20} color="#bb69f2" />
+                                <View style={styles.privacyText}>
+                                    <Text style={styles.privacyLabel}>Сбор данных</Text>
+                                    <Text style={styles.privacyDescription}>Анонимная статистика использования</Text>
+                                </View>
+                                <Switch
+                                    value={true}
+                                    onValueChange={() => { }}
+                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                />
+                            </View>
+                            <TouchableOpacity style={styles.privacyItem}>
+                                <Ionicons name="download-outline" size={20} color="#bb69f2" />
+                                <View style={styles.privacyText}>
+                                    <Text style={styles.privacyLabel}>Экспорт данных</Text>
+                                    <Text style={styles.privacyDescription}>Скачайте ваши данные</Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={16} color="#ccc" />
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.privacyItem}>
+                                <Ionicons name="trash-outline" size={20} color="#ff6b6b" />
+                                <View style={styles.privacyText}>
+                                    <Text style={[styles.privacyLabel, { color: '#ff6b6b' }]}>Удалить данные</Text>
+                                    <Text style={styles.privacyDescription}>Безвозвратно удалить все данные</Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={16} color="#ccc" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setShowPrivacyModal(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Готово</Text>
+                        </TouchableOpacity>
+                    </View>
+                </BlurView>
+            </Modal>
+
+            {/* Модальное окно внешнего вида */}
+            <Modal visible={showAppearanceModal} animationType="fade" transparent statusBarTranslucent>
+                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
+                    <View style={styles.modalContentLarge}>
+                        <Text style={styles.modalTitle}>Внешний вид</Text>
+                        <Text style={styles.modalSubtitle}>Настройте оформление приложения</Text>
+
+                        <View style={styles.appearanceSection}>
+                            <Text style={styles.appearanceSectionTitle}>Тема</Text>
+                            <View style={styles.themeOptions}>
+                                <TouchableOpacity style={[styles.themeOption, !darkMode && styles.themeOptionActive]}>
+                                    <Ionicons name="sunny" size={24} color={!darkMode ? '#bb69f2' : '#ccc'} />
+                                    <Text style={[styles.themeText, !darkMode && styles.themeTextActive]}>Светлая</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.themeOption, darkMode && styles.themeOptionActive]}>
+                                    <Ionicons name="moon" size={24} color={darkMode ? '#bb69f2' : '#ccc'} />
+                                    <Text style={[styles.themeText, darkMode && styles.themeTextActive]}>Темная</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        <View style={styles.appearanceSection}>
+                            <Text style={styles.appearanceSectionTitle}>Цветовая схема</Text>
+                            <View style={styles.colorOptions}>
+                                {['#bb69f2', '#69a4fe', '#4ECDC4', '#FF6B6B', '#FFD93D'].map((color) => (
+                                    <TouchableOpacity
+                                        key={color}
+                                        style={[styles.colorOption, { backgroundColor: color }]}
+                                    />
+                                ))}
+                            </View>
+                        </View>
+
+                        <View style={styles.appearanceSection}>
+                            <Text style={styles.appearanceSectionTitle}>Эффекты</Text>
+                            <View style={styles.modalSettingItem}>
+                                <View style={styles.modalSettingLeft}>
+                                    <Ionicons name="play-outline" size={20} color="#bb69f2" />
+                                    <Text style={styles.modalSettingLabel}>Анимации</Text>
+                                </View>
+                                <Switch
+                                    value={animationsEnabled}
+                                    onValueChange={setAnimationsEnabled}
+                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                    thumbColor={animationsEnabled ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                            <View style={styles.modalSettingItem}>
+                                <View style={styles.modalSettingLeft}>
+                                    <Ionicons name="sparkles-outline" size={20} color="#bb69f2" />
+                                    <Text style={styles.modalSettingLabel}>Эффекты</Text>
+                                </View>
+                                <Switch
+                                    value={effectsEnabled}
+                                    onValueChange={setEffectsEnabled}
+                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                    thumbColor={effectsEnabled ? '#ffffff' : '#f4f3f4'}
+                                />
+                            </View>
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setShowAppearanceModal(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Готово</Text>
+                        </TouchableOpacity>
+                    </View>
+                </BlurView>
+            </Modal>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f8f9fa',
+    },
+    scrollView: {
+        flex: 1,
+    },
+    header: {
+        padding: 25,
+        backgroundColor: 'white',
+        borderBottomLeftRadius: 25,
+        borderBottomRightRadius: 25,
+        marginBottom: 10,
+    },
+    headerTitle: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 5,
+    },
+    headerSubtitle: {
+        fontSize: 16,
+        color: '#666',
+    },
+    section: {
+        backgroundColor: 'white',
+        marginHorizontal: 20,
+        marginBottom: 15,
+        borderRadius: 20,
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
+    },
+    sectionHeader: {
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f8f9fa',
+    },
+    sectionTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginLeft: 10,
+    },
+    sectionContent: {
+        paddingHorizontal: 5,
+    },
+    settingItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 16,
+        paddingHorizontal: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f8f9fa',
+    },
+    settingLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    settingIcon: {
+        marginRight: 12,
+    },
+    settingTextContainer: {
+        flex: 1,
+    },
+    settingLabel: {
+        fontSize: 16,
+        color: '#333',
+        fontWeight: '500',
+    },
+    settingDescription: {
+        fontSize: 12,
+        color: '#666',
+        marginTop: 2,
+    },
+    settingValue: {
+        fontSize: 14,
+        color: '#999',
+        fontWeight: '500',
+    },
+    logoutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'white',
+        margin: 20,
+        padding: 18,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#ff6b6b',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    logoutText: {
+        color: '#ff6b6b',
+        fontSize: 16,
+        fontWeight: '600',
+        marginLeft: 8,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 25,
+        padding: 25,
+        width: '100%',
+        maxWidth: 400,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    modalContentLarge: {
+        backgroundColor: 'white',
+        borderRadius: 25,
+        padding: 25,
+        width: '100%',
+        maxWidth: 400,
+        maxHeight: '80%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+        elevation: 10,
+    },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    modalSubtitle: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+        marginBottom: 25,
+        lineHeight: 20,
+    },
+    inputGroup: {
+        marginBottom: 20,
+    },
+    inputLabel: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#333',
+        marginBottom: 8,
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f8f9fa',
+        borderRadius: 16,
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+    },
+    input: {
+        flex: 1,
+        fontSize: 16,
+        color: '#333',
+        marginLeft: 10,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+    },
+    cancelButton: {
+        flex: 1,
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: '#f8f9fa',
+        marginRight: 10,
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        color: '#666',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    saveButton: {
+        flex: 1,
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: '#bb69f2',
+        marginLeft: 10,
+        alignItems: 'center',
+    },
+    saveButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    modalSection: {
+        marginBottom: 25,
+    },
+    modalSectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 15,
+    },
+    modalSettingItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f8f9fa',
+    },
+    modalSettingLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    modalSettingLabel: {
+        fontSize: 16,
+        color: '#333',
+        marginLeft: 12,
+        fontWeight: '500',
+    },
+    privacySection: {
+        marginBottom: 25,
+    },
+    privacySectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 15,
+    },
+    privacyItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f8f9fa',
+    },
+    privacyText: {
+        flex: 1,
+        marginLeft: 12,
+    },
+    privacyLabel: {
+        fontSize: 16,
+        color: '#333',
+        fontWeight: '500',
+    },
+    privacyDescription: {
+        fontSize: 12,
+        color: '#666',
+        marginTop: 2,
+    },
+    privacyValue: {
+        fontSize: 14,
+        color: '#999',
+        fontWeight: '500',
+    },
+    appearanceSection: {
+        marginBottom: 25,
+    },
+    appearanceSectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 15,
+    },
+    themeOptions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    themeOption: {
+        flex: 1,
+        alignItems: 'center',
+        padding: 20,
+        borderRadius: 16,
+        backgroundColor: '#f8f9fa',
+        marginHorizontal: 5,
+        borderWidth: 2,
+        borderColor: 'transparent',
+    },
+    themeOptionActive: {
+        borderColor: '#bb69f2',
+        backgroundColor: '#f0e6ff',
+    },
+    themeText: {
+        marginTop: 8,
+        fontSize: 14,
+        color: '#666',
+        fontWeight: '500',
+    },
+    themeTextActive: {
+        color: '#bb69f2',
+        fontWeight: '600',
+    },
+    colorOptions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    colorOption: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginHorizontal: 5,
+    },
+    closeButton: {
+        padding: 16,
+        borderRadius: 16,
+        backgroundColor: '#bb69f2',
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    closeButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+});
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\screens\Onboarding\GoogleLoginPage.js                              ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\screens\Onboarding\GoogleLoginPage.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export default function GoogleLoginPage() {
+    const navigation = useNavigation();
+
+    const handleLogin = async () => {
+        try {
+            // Сохраняем состояние логина
+            await AsyncStorage.setItem('isLoggedIn', 'true');
+
+            // Проверяем, завершал ли пользователь онбординг ранее
+            const hasCompletedOnboarding = await AsyncStorage.getItem('hasCompletedOnboarding');
+
+            if (hasCompletedOnboarding === 'true') {
+                // Если онбординг завершен, идем сразу в главное приложение
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Main' }],
+                });
+            } else {
+                // Если онбординг не завершен, идем в онбординг
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Onboarding' }],
+                });
+            }
+        } catch (error) {
+            console.error('Error saving login state:', error);
+        }
+    };
+
+    const handleSkip = async () => {
+        try {
+            // При пропуске сохраняем состояние логина
+            await AsyncStorage.setItem('isLoggedIn', 'true');
+            // Помечаем онбординг как завершенный
+            await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+
+            // Переходим в главное приложение
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Main' }],
+            });
+        } catch (error) {
+            console.error('Error during skip:', error);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        console.log('Google login pressed');
+        await handleLogin();
+    };
+
+    const handleAppleLogin = async () => {
+        console.log('Apple login pressed');
+        await handleLogin();
+    };
+
+    return (
+        <View style={styles.container}>
+            {/* Верхняя часть с градиентом и изображением */}
+            <LinearGradient
+                colors={['#f8fdff', '#e1f7ff']}
+                style={styles.gradientContainer}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+            >
+                <Image
+                    source={require('../../../assets/images/page_assets/onboarding_image.png')}
+                    style={styles.image}
+                    resizeMode="contain"
+                />
+            </LinearGradient>
+
+            {/* Нижняя часть с кнопками входа */}
+            <View style={styles.bottomContainer}>
+                <Text style={styles.title}>Добро пожаловать в MoiMoi!</Text>
+                <Text style={styles.subtitle}>
+                    Войдите в свой аккаунт, чтобы начать использовать приложение
+                </Text>
+
+                {/* Кнопка входа через Google */}
+                <TouchableOpacity
+                    style={styles.googleButton}
+                    onPress={handleGoogleLogin}
+                >
+                    <View style={styles.buttonContent}>
+                        <Image
+                            source={require('../../../assets/images/icons/google.png')}
+                            style={styles.icon}
+                        />
+                        <Text style={styles.googleButtonText}>Войти через Google</Text>
+                    </View>
+                </TouchableOpacity>
+
+                {/* Кнопка входа через Apple */}
+                <TouchableOpacity
+                    style={styles.appleButton}
+                    onPress={handleAppleLogin}
+                >
+                    <View style={styles.buttonContent}>
+                        <Image
+                            source={require('../../../assets/images/icons/apple.png')}
+                            style={[styles.icon, styles.whiteIcon]}
+                        />
+                        <Text style={styles.appleButtonText}>Войти через Apple</Text>
+                    </View>
+                </TouchableOpacity>
+
+                {/* Кнопка пропуска */}
+                <TouchableOpacity
+                    style={styles.skipButton}
+                    onPress={handleSkip}
+                >
+                    <Text style={styles.skipButtonText}>Пропустить и продолжить</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#e1f7ff',
+    },
+    gradientContainer: {
+        height: '60%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+        padding: 20,
+        marginTop: 60,
+    },
+    image: {
+        width: '200%',
+        height: '130%',
+    },
+    bottomContainer: {
+        flex: 1,
+        padding: 30,
+        justifyContent: 'center',
+        backgroundColor: '#e1f7ff',
+        marginBottom: 50,
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 10,
+        color: '#333',
+    },
+    subtitle: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 40,
+        color: '#666',
+        lineHeight: 22,
+    },
+    googleButton: {
+        backgroundColor: 'white',
+        borderWidth: 2,
+        borderColor: '#e9ecef',
+        borderRadius: 16,
+        paddingVertical: 16,
+        marginBottom: 15,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    appleButton: {
+        backgroundColor: '#000000',
+        borderRadius: 16,
+        paddingVertical: 16,
+        marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    skipButton: {
+        padding: 16,
+        alignItems: 'center',
+        marginBottom: 30,
+    },
+    skipButtonText: {
+        color: '#666',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    buttonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    icon: {
+        width: 24,
+        height: 24,
+        resizeMode: 'contain',
+    },
+    whiteIcon: {
+        tintColor: 'white',
+    },
+    googleButtonText: {
+        color: '#333',
+        fontSize: 16,
+        fontWeight: '600',
+        marginLeft: 12,
+    },
+    appleButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+        marginLeft: 12,
+    },
+});
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\screens\Onboarding\HabitsScreen.js                                 ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\screens\Onboarding\HabitsScreen.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+
+const defaultHabits = [
+    { id: '1', name: 'Упражнения', icon: 'fitness', selected: false },
+    { id: '2', name: 'Чтение', icon: 'book', selected: false },
+    { id: '3', name: 'Медитация', icon: 'leaf', selected: false },
+    { id: '4', name: 'Пить воду', icon: 'water', selected: false },
+    { id: '5', name: 'Сон', icon: 'moon', selected: false },
+    { id: '6', name: 'Учеба', icon: 'school', selected: false },
+    { id: '7', name: 'Курение', icon: 'ban', selected: false },
+    { id: '8', name: 'Ходьба', icon: 'walk', selected: false },
+];
+
+export default function HabitsScreen() {
+    const [habits, setHabits] = useState(defaultHabits);
+    const navigation = useNavigation();
+
+    const toggleHabit = (id) => {
+        const updatedHabits = habits.map(habit =>
+            habit.id === id ? { ...habit, selected: !habit.selected } : habit
+        );
+        setHabits(updatedHabits);
+    };
+
+    const saveHabitsAndContinue = async () => {
+        try {
+            const selectedHabits = habits.filter(habit => habit.selected);
+
+            // Сохраняем выбранные привычки
+            await AsyncStorage.setItem('userHabits', JSON.stringify(selectedHabits));
+
+            // Переходим на экран регистрации
+            navigation.navigate('Registration');
+        } catch (error) {
+            console.error('Error saving habits:', error);
+        }
+    };
+
+    const selectedCount = habits.filter(habit => habit.selected).length;
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Выберите свои привычки 🎯</Text>
+            <Text style={styles.subtitle}>
+                Выберите привычки, которые вы хотите отслеживать{'\n'}
+                <Text style={styles.counter}>({selectedCount} выбрано)</Text>
+            </Text>
+
+            <ScrollView style={styles.habitsContainer} showsVerticalScrollIndicator={false}>
+                <View style={styles.habitsGrid}>
+                    {habits.map((habit) => (
+                        <TouchableOpacity
+                            key={habit.id}
+                            style={[
+                                styles.habitCard,
+                                habit.selected && styles.habitCardSelected
+                            ]}
+                            onPress={() => toggleHabit(habit.id)}
+                        >
+                            <View style={[
+                                styles.iconContainer,
+                                habit.selected && styles.iconContainerSelected
+                            ]}>
+                                <Ionicons
+                                    name={habit.icon}
+                                    size={28}
+                                    color={habit.selected ? '#bb69f2' : '#666'}
+                                />
+                            </View>
+                            <Text style={[
+                                styles.habitName,
+                                habit.selected && styles.habitNameSelected
+                            ]}>
+                                {habit.name}
+                            </Text>
+                            {habit.selected && (
+                                <Ionicons
+                                    name="checkmark-circle"
+                                    size={20}
+                                    color="#bb69f2"
+                                    style={styles.checkIcon}
+                                />
+                            )}
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            </ScrollView>
+
+            <TouchableOpacity
+                style={[
+                    styles.continueButton,
+                    selectedCount === 0 && styles.continueButtonDisabled
+                ]}
+                onPress={saveHabitsAndContinue}
+                disabled={selectedCount === 0}
+            >
+                <Text style={styles.continueButtonText}>
+                    Продолжить ({selectedCount})
+                </Text>
+            </TouchableOpacity>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 20,
+        backgroundColor: '#ffffff',
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        color: '#333',
+        textAlign: 'center',
+        marginTop: 20,
+    },
+    subtitle: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 30,
+        color: '#666',
+        lineHeight: 22,
+    },
+    counter: {
+        color: '#bb69f2',
+        fontWeight: '600',
+    },
+    habitsContainer: {
+        flex: 1,
+        marginBottom: 20,
+    },
+    habitsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    habitCard: {
+        width: '48%',
+        backgroundColor: '#f8f9fa',
+        padding: 20,
+        borderRadius: 16,
+        alignItems: 'center',
+        marginBottom: 15,
+        borderWidth: 2,
+        borderColor: 'transparent',
+        position: 'relative',
+    },
+    habitCardSelected: {
+        backgroundColor: '#f0e6ff',
+        borderColor: '#bb69f2',
+    },
+    iconContainer: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: 'white',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+        borderWidth: 2,
+        borderColor: '#e9ecef',
+    },
+    iconContainerSelected: {
+        borderColor: '#bb69f2',
+        backgroundColor: '#fff',
+    },
+    habitName: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#333',
+        textAlign: 'center',
+    },
+    habitNameSelected: {
+        color: '#bb69f2',
+        fontWeight: '600',
+    },
+    checkIcon: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+    },
+    continueButton: {
+        backgroundColor: '#69a4fe',
+        paddingVertical: 16,
+        borderRadius: 25,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    continueButtonDisabled: {
+        backgroundColor: '#ccc',
+    },
+    continueButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+});
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\screens\Onboarding\PermissionsScreen.js                            ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\screens\Onboarding\PermissionsScreen.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+
+export default function PermissionsScreen() {
+    const navigation = useNavigation();
+
+    const handleEnablePermissions = async () => {
+        try {
+            // Фейковый запрос разрешений - просто показываем сообщение
+            Alert.alert(
+                'Уведомления включены!',
+                'Теперь вы будете получать напоминания от MoiMoi (в будущих версиях)',
+                [
+                    {
+                        text: 'Отлично!',
+                        onPress: () => navigation.navigate('Habits')
+                    }
+                ]
+            );
+        } catch (error) {
+            console.error('Ошибка:', error);
+            Alert.alert('Ошибка', 'Что-то пошло не так');
+            navigation.navigate('Habits');
+        }
+    };
+
+    const handleSkip = () => {
+        navigation.navigate('Habits');
+    };
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Необходимые разрешения 🔔</Text>
+
+            <ScrollView style={styles.permissionsList}>
+                <View style={styles.permissionItem}>
+                    <Ionicons name="notifications-outline" size={32} color="#bb69f2" />
+                    <View style={styles.permissionText}>
+                        <Text style={styles.permissionTitle}>Уведомления</Text>
+                        <Text style={styles.permissionDescription}>
+                            Чтобы напоминать вам о ваших задачах и следить за вашим прогрессом
+                        </Text>
+                    </View>
+                </View>
+
+                <View style={styles.permissionItem}>
+                    <Ionicons name="time-outline" size={32} color="#bb69f2" />
+                    <View style={styles.permissionText}>
+                        <Text style={styles.permissionTitle}>Напоминания</Text>
+                        <Text style={styles.permissionDescription}>
+                            Чтобы помочь вам оставаться в курсе ваших повседневных привычек
+                        </Text>
+                    </View>
+                </View>
+
+                <View style={styles.noteBox}>
+                    <Ionicons name="information-circle-outline" size={20} color="#69a4fe" />
+                    <Text style={styles.noteText}>
+                        В текущей версии уведомления работают в тестовом режиме. Полная функциональность будет добавлена в следующих обновлениях.
+                    </Text>
+                </View>
+            </ScrollView>
+
+            <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                    style={styles.primaryButton}
+                    onPress={handleEnablePermissions}
+                >
+                    <Text style={styles.primaryButtonText}>Включить уведомления</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.secondaryButton}
+                    onPress={handleSkip}
+                >
+                    <Text style={styles.secondaryButtonText}>Пропустить</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 20,
+        backgroundColor: '#ffffff',
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginBottom: 30,
+        color: '#333',
+        textAlign: 'center',
+        marginTop: 20,
+    },
+    permissionsList: {
+        flex: 1,
+    },
+    permissionItem: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: '#f8f9fa',
+        padding: 20,
+        borderRadius: 12,
+        marginBottom: 15,
+        borderLeftWidth: 4,
+        borderLeftColor: '#bb69f2',
+    },
+    permissionText: {
+        flex: 1,
+        marginLeft: 15,
+    },
+    permissionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginBottom: 5,
+        color: '#333',
+    },
+    permissionDescription: {
+        fontSize: 14,
+        color: '#666',
+        lineHeight: 20,
+    },
+    noteBox: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: '#e3f2fd',
+        padding: 15,
+        borderRadius: 12,
+        marginTop: 10,
+        borderLeftWidth: 4,
+        borderLeftColor: '#69a4fe',
+    },
+    noteText: {
+        flex: 1,
+        fontSize: 14,
+        color: '#1976d2',
+        lineHeight: 20,
+        marginLeft: 10,
+    },
+    buttonContainer: {
+        marginTop: 20,
+    },
+    primaryButton: {
+        backgroundColor: '#69a4fe',
+        paddingVertical: 15,
+        borderRadius: 25,
+        marginBottom: 15,
+        alignItems: 'center',
+    },
+    primaryButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    secondaryButton: {
+        padding: 15,
+        alignItems: 'center',
+    },
+    secondaryButtonText: {
+        color: '#666',
+        fontSize: 16,
+    },
+});
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\screens\Onboarding\RegistrationScreen.js                           ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\screens\Onboarding\RegistrationScreen.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
+
+export default function RegistrationScreen() {
+    const navigation = useNavigation();
+    const [formData, setFormData] = useState({
+        name: '',
+        age: '',
+        moimoiName: 'Moi',
+        avatar: null,
+    });
+
+    const updateFormData = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const pickImage = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (status !== 'granted') {
+            Alert.alert('Необходимо разрешение для доступа к фотографиям');
+            return;
+        }
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            updateFormData('avatar', result.assets[0].uri);
+        }
+    };
+
+    const saveUserData = async () => {
+        if (!formData.name.trim()) {
+            Alert.alert('Ошибка', 'Пожалуйста, введите ваше имя');
+            return;
+        }
+
+        if (!formData.age || parseInt(formData.age) < 1 || parseInt(formData.age) > 120) {
+            Alert.alert('Ошибка', 'Пожалуйста, введите корректный возраст');
+            return;
+        }
+
+        try {
+            const userData = {
+                ...formData,
+                age: parseInt(formData.age),
+                registeredAt: new Date().toISOString(),
+            };
+
+            // Сохраняем данные пользователя
+            await AsyncStorage.setItem('userData', JSON.stringify(userData));
+
+            // Переходим на главный экран
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Main' }],
+            });
+        } catch (error) {
+            console.error('Error saving user data:', error);
+            Alert.alert('Ошибка', 'Не удалось сохранить данные');
+        }
+    };
+
+    return (
+        <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <Text style={styles.title}>Давайте познакомимся! 👋</Text>
+
+                {/* Avatar Section */}
+                <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
+                    {formData.avatar ? (
+                        <Image source={{ uri: formData.avatar }} style={styles.avatar} />
+                    ) : (
+                        <View style={styles.avatarPlaceholder}>
+                            <Ionicons name="person-outline" size={40} color="#bb69f2" />
+                            <Text style={styles.avatarText}>Добавить фото</Text>
+                        </View>
+                    )}
+                    <View style={styles.avatarOverlay}>
+                        <Ionicons name="camera" size={24} color="white" />
+                    </View>
+                </TouchableOpacity>
+
+                {/* Form Fields */}
+                <View style={styles.form}>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Ваше имя *</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Введите ваше имя"
+                            value={formData.name}
+                            onChangeText={(text) => updateFormData('name', text)}
+                            placeholderTextColor="#999"
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Ваш возраст *</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Введите ваш возраст"
+                            value={formData.age}
+                            onChangeText={(text) => updateFormData('age', text)}
+                            keyboardType="numeric"
+                            placeholderTextColor="#999"
+                        />
+                    </View>
+
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Имя вашего MoiMoi</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Введите имя для MoiMoi"
+                            value={formData.moimoiName}
+                            onChangeText={(text) => updateFormData('moimoiName', text)}
+                            placeholderTextColor="#999"
+                        />
+                    </View>
+                </View>
+
+                <TouchableOpacity
+                    style={[
+                        styles.saveButton,
+                        (!formData.name.trim() || !formData.age) && styles.saveButtonDisabled
+                    ]}
+                    onPress={saveUserData}
+                    disabled={!formData.name.trim() || !formData.age}
+                >
+                    <Text style={styles.saveButtonText}>Сохранить и начать</Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#ffffff',
+    },
+    scrollContent: {
+        flexGrow: 1,
+        padding: 20,
+        paddingTop: 60,
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 40,
+        color: '#333',
+    },
+    avatarContainer: {
+        alignItems: 'center',
+        marginBottom: 40,
+        position: 'relative',
+    },
+    avatar: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderWidth: 4,
+        borderColor: '#bb69f2',
+    },
+    avatarPlaceholder: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: '#f8f9fa',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 4,
+        borderColor: '#e9ecef',
+        borderStyle: 'dashed',
+    },
+    avatarText: {
+        marginTop: 8,
+        color: '#bb69f2',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    avatarOverlay: {
+        position: 'absolute',
+        bottom: 0,
+        right: '35%',
+        backgroundColor: '#69a4fe',
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 3,
+        borderColor: 'white',
+    },
+    form: {
+        marginBottom: 40,
+    },
+    inputContainer: {
+        marginBottom: 20,
+    },
+    label: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 8,
+        color: '#333',
+    },
+    input: {
+        borderWidth: 2,
+        borderColor: '#e9ecef',
+        borderRadius: 12,
+        padding: 16,
+        fontSize: 16,
+        backgroundColor: '#f8f9fa',
+        color: '#333',
+    },
+    saveButton: {
+        backgroundColor: '#69a4fe',
+        paddingVertical: 16,
+        borderRadius: 25,
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    saveButtonDisabled: {
+        backgroundColor: '#ccc',
+    },
+    saveButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+});
+────────────────────────────────────────────────────────────────────────────────
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: src\screens\Onboarding\WelcomeScreen.js                                ║
+║ КАТЕГОРИЯ: JavaScript                                                        ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\src\screens\Onboarding\WelcomeScreen.js ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import LottieView from 'lottie-react-native';
+
+export default function WelcomeScreen() {
+    const navigation = useNavigation();
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Познакомься со своим MoiMoi! 👋</Text>
+
+            {/* Lottie анимация вместо статичного изображения */}
+            <LottieView
+                source={require('../../../assets/Animations/moimoi_starter_Animation.json')} // Убедитесь, что путь верный
+                autoPlay
+                loop
+                style={styles.animation}
+            />
+
+            <Text style={styles.description}>
+                Привет! Я твой личный компаньон для выработки лучших привычек и достижения целей.
+            </Text>
+
+            <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={() => navigation.navigate('Permissions')}
+            >
+                <Text style={styles.primaryButtonText}>Продолжить</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() => navigation.navigate('Main')}
+            >
+                <Text style={styles.secondaryButtonText}>Пропустить</Text>
+            </TouchableOpacity>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: '#ffffff',
+    },
+    title: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        marginBottom: 40,
+        color: '#333',
+        textAlign: 'center',
+    },
+    animation: {
+        width: 300,
+        height: 300,
+        marginBottom: 20,
+    },
+    description: {
+        fontSize: 18,
+        textAlign: 'center',
+        marginBottom: 50,
+        lineHeight: 24,
+        color: '#666',
+        paddingHorizontal: 20,
+    },
+    primaryButton: {
+        backgroundColor: '#69a4fe',
+        paddingHorizontal: 50,
+        paddingVertical: 15,
+        borderRadius: 25,
+        marginBottom: 15,
+        width: '100%',
+        alignItems: 'center',
+    },
+    primaryButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    secondaryButton: {
+        padding: 15,
+    },
+    secondaryButtonText: {
+        color: '#666',
+        fontSize: 16,
+    },
+});
+────────────────────────────────────────────────────────────────────────────────
+
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+КАТЕГОРИЯ: Python (1 файлов)
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ ФАЙЛ: main.py                                                                ║
+║ КАТЕГОРИЯ: Python                                                            ║
+║ ПОЛНЫЙ ПУТЬ: C:\Users\MSI\Desktop\MoiMoi\MoiMoi\main.py                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+import os
+import argparse
+from pathlib import Path
+
+def should_skip_directory(dir_name):
+    """Проверяет, нужно ли пропускать директорию"""
+    skip_dirs = {
+        'node_modules', '.git', 'build', 'dist', 'coverage', 
+        '.next', '.nuxt', '.cache', 'assets', 'static',
+        'public', '.vscode', '.idea', '__pycache__', 'cache',
+        'logs', 'temp', 'tmp', 'vendor', 'bin', 'obj'
+    }
+    return dir_name in skip_dirs or dir_name.startswith('.')
+
+def should_skip_file(file_name):
+    """Проверяет, нужно ли пропускать файл"""
+    skip_files = {
+        'package.json', 'package-lock.json', 'yarn.lock',
+        'tsconfig.json', 'webpack.config.js', '.eslintrc.js',
+        '.prettierrc', 'babel.config.js', 'next.config.js',
+        'jest.config.js', 'vue.config.js', 'nuxt.config.js',
+        '.gitignore', '.env', '.env.local', 'README.md'
+    }
+    return file_name in skip_files
+
+def is_target_file(file_name):
+    """Проверяет, является ли файл целевым (JS/JSX/TS/TSX и другие исходные файлы)"""
+    target_extensions = {
+        '.js', '.jsx', '.ts', '.tsx', '.vue', '.svelte',
+        '.css', '.scss', '.less', '.html', '.htm', '.json',
+        '.py', '.java', '.cpp', '.c', '.h', '.cs', '.php',
+        '.rb', '.go', '.rs', '.swift', '.kt', '.dart'
+    }
+    return any(file_name.endswith(ext) for ext in target_extensions)
+
+def get_file_category(file_extension):
+    """Возвращает категорию файла для группировки"""
+    categories = {
+        '.js': 'JavaScript',
+        '.jsx': 'React JSX',
+        '.ts': 'TypeScript', 
+        '.tsx': 'React TypeScript',
+        '.vue': 'Vue',
+        '.svelte': 'Svelte',
+        '.py': 'Python',
+        '.html': 'HTML',
+        '.css': 'CSS',
+        '.scss': 'SCSS',
+        '.less': 'LESS',
+        '.json': 'JSON',
+        '.java': 'Java',
+        '.cpp': 'C++',
+        '.c': 'C',
+        '.cs': 'C#',
+        '.php': 'PHP',
+        '.rb': 'Ruby',
+        '.go': 'Go',
+        '.rs': 'Rust',
+        '.swift': 'Swift',
+        '.kt': 'Kotlin',
+        '.dart': 'Dart'
+    }
+    return categories.get(file_extension, 'Other')
+
+def format_file_header(file_path, relative_path, category):
+    """Форматирует заголовок файла"""
+    header = []
+    header.append("╔" + "═" * 78 + "╗")
+    header.append(f"║ ФАЙЛ: {relative_path:<70} ║")
+    header.append(f"║ КАТЕГОРИЯ: {category:<65} ║")
+    header.append(f"║ ПОЛНЫЙ ПУТЬ: {file_path:<64} ║")
+    header.append("╚" + "═" * 78 + "╝")
+    return '\n'.join(header)
+
+def format_file_footer():
+    """Форматирует подвал файла"""
+    return "\n" + "─" * 80 + "\n"
+
+def collect_source_files(root_dir, output_file):
+    """Рекурсивно собирает исходные файлы и записывает их в output_file"""
+    
+    root_path = Path(root_dir)
+    files_by_category = {}
+    total_files = 0
+    
+    print("🔍 Сканирую структуру проекта...")
+    
+    # Сначала собираем все файлы по категориям
+    for root, dirs, files in os.walk(root_dir):
+        # Удаляем директории, которые нужно пропустить
+        dirs[:] = [d for d in dirs if not should_skip_directory(d)]
+        
+        for file in files:
+            if should_skip_file(file):
+                continue
+                
+            if is_target_file(file):
+                file_path = Path(root) / file
+                relative_path = file_path.relative_to(root_path)
+                file_extension = file_path.suffix.lower()
+                category = get_file_category(file_extension)
+                
+                if category not in files_by_category:
+                    files_by_category[category] = []
+                
+                files_by_category[category].append((file_path, relative_path))
+                total_files += 1
+    
+    print(f"📁 Найдено {total_files} файлов в {len(files_by_category)} категориях")
+    
+    # Записываем файлы в выходной файл, сгруппированные по категориям
+    with open(output_file, 'w', encoding='utf-8') as out_f:
+        # Заголовок документа
+        out_f.write("=" * 80 + "\n")
+        out_f.write(f"ИСХОДНЫЙ КОД ПРОЕКТА\n")
+        out_f.write(f"Директория: {root_dir}\n")
+        out_f.write(f"Всего файлов: {total_files}\n")
+        out_f.write("=" * 80 + "\n\n")
+        
+        # Проходим по категориям в алфавитном порядке
+        for category in sorted(files_by_category.keys()):
+            files_in_category = files_by_category[category]
+            
+            # Заголовок категории
+            out_f.write("\n" + "■" * 80 + "\n")
+            out_f.write(f"КАТЕГОРИЯ: {category} ({len(files_in_category)} файлов)\n")
+            out_f.write("■" * 80 + "\n\n")
+            
+            # Сортируем файлы по пути
+            for file_path, relative_path in sorted(files_in_category, key=lambda x: str(x[1])):
+                try:
+                    # Записываем заголовок файла
+                    out_f.write(format_file_header(str(file_path), str(relative_path), category))
+                    out_f.write("\n\n")
+                    
+                    # Читаем и записываем содержимое файла
+                    with open(file_path, 'r', encoding='utf-8') as in_f:
+                        content = in_f.read().rstrip()  # Убираем лишние пробелы в конце
+                        out_f.write(content)
+                    
+                    # Записываем подвал файла
+                    out_f.write(format_file_footer())
+                    
+                    print(f"✅ Обработан: {relative_path}")
+                    
+                except UnicodeDecodeError:
+                    try:
+                        # Пробуем другую кодировку
+                        with open(file_path, 'r', encoding='cp1251') as in_f:
+                            content = in_f.read().rstrip()
+                            out_f.write(content)
+                        out_f.write(format_file_footer())
+                        print(f"✅ Обработан (Windows-1251): {relative_path}")
+                    except Exception as e:
+                        out_f.write(f"// ⚠️ Ошибка чтения файла: {e}\n")
+                        out_f.write(format_file_footer())
+                        print(f"❌ Ошибка: {relative_path} - {e}")
+                        
+                except Exception as e:
+                    out_f.write(f"// ⚠️ Ошибка чтения файла: {e}\n")
+                    out_f.write(format_file_footer())
+                    print(f"❌ Ошибка: {relative_path} - {e}")
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='📁 Сборщик исходного кода проекта - создает структурированный файл со всем кодом',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument('--input', '-i', default='.', 
+                       help='Входная директория (по умолчанию текущая)')
+    parser.add_argument('--output', '-o', default='project_code.txt',
+                       help='Выходной файл (по умолчанию project_code.txt)')
+    
+    args = parser.parse_args()
+    
+    input_dir = os.path.abspath(args.input)
+    output_file = args.output
+    
+    if not os.path.exists(input_dir):
+        print(f"❌ Ошибка: Директория {input_dir} не существует!")
+        return
+    
+    print("🚀 Запуск сборщика исходного кода...")
+    print(f"📂 Исходная директория: {input_dir}")
+    print(f"💾 Выходной файл: {output_file}")
+    print("-" * 60)
+    
+    collect_source_files(input_dir, output_file)
+    
+    print("-" * 60)
+    print(f"🎉 Сборка завершена успешно!")
+    print(f"📄 Все файлы сохранены в: {output_file}")
+
+if __name__ == "__main__":
+    main()
+────────────────────────────────────────────────────────────────────────────────
