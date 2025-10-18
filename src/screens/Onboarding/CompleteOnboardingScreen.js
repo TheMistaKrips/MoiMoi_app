@@ -19,7 +19,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Данные для привычек
 const defaultHabits = [
     { id: '1', name: 'Упражнения', icon: 'fitness', selected: false, category: 'health' },
     { id: '2', name: 'Чтение', icon: 'book', selected: false, category: 'education' },
@@ -34,8 +33,6 @@ const defaultHabits = [
 export default function CompleteOnboardingScreen() {
     const navigation = useNavigation();
     const [currentStep, setCurrentStep] = useState(0);
-
-    // Все данные пользователя
     const [userData, setUserData] = useState({
         name: '',
         age: 25,
@@ -48,9 +45,11 @@ export default function CompleteOnboardingScreen() {
         registeredAt: new Date().toISOString()
     });
 
-    // Анимации
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
+
+    const ageScrollRef = useRef(null);
+    const weightScrollRef = useRef(null);
 
     const steps = [
         { title: 'Добро пожаловать! 👋', subtitle: 'Создадим твой идеальный профиль' },
@@ -62,7 +61,6 @@ export default function CompleteOnboardingScreen() {
         { title: 'Готово! 🎉', subtitle: 'Начинаем наше путешествие!' }
     ];
 
-    // Обновление данных
     const updateUserData = (field, value) => {
         setUserData(prev => ({
             ...prev,
@@ -70,7 +68,6 @@ export default function CompleteOnboardingScreen() {
         }));
     };
 
-    // Анимация шагов
     const animateStep = (direction = 'next') => {
         fadeAnim.setValue(0);
         slideAnim.setValue(direction === 'next' ? 50 : -50);
@@ -105,7 +102,6 @@ export default function CompleteOnboardingScreen() {
         }
     };
 
-    // Выбор аватарки
     const pickImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
@@ -125,7 +121,6 @@ export default function CompleteOnboardingScreen() {
         }
     };
 
-    // Переключение привычек
     const toggleHabit = (habitId) => {
         const updatedHabits = defaultHabits.map(habit =>
             habit.id === habitId ? { ...habit, selected: !habit.selected } : habit
@@ -135,7 +130,6 @@ export default function CompleteOnboardingScreen() {
         updateUserData('habits', selectedHabits);
     };
 
-    // Комплименты по весу
     const getWeightCompliment = (weight) => {
         if (weight < 50) return "Ты невесомо прекрасна! ✨";
         if (weight < 60) return "Идеальные формы! 🌸";
@@ -145,7 +139,6 @@ export default function CompleteOnboardingScreen() {
         return "Великолепная мощь! 🐘";
     };
 
-    // Рекомендации по возрасту
     const getAgeRecommendation = (age) => {
         if (age < 18) return "Молодость - время возможностей! 🌟";
         if (age < 25) return "Идеальное время для развития! 🚀";
@@ -155,18 +148,25 @@ export default function CompleteOnboardingScreen() {
         return "Жизненная мудрость! 👑";
     };
 
-    // Селектор возраста
     const AgeSelector = () => {
         const ages = Array.from({ length: 83 }, (_, i) => i + 18);
+
+        const scrollToAge = (age) => {
+            const index = ages.indexOf(age);
+            if (ageScrollRef.current && index !== -1) {
+                ageScrollRef.current.scrollTo({ y: index * 60, animated: true });
+            }
+        };
 
         return (
             <View style={styles.selectorContainer}>
                 <View style={styles.pickerContainer}>
                     <View style={styles.selectionIndicator} />
                     <ScrollView
+                        ref={ageScrollRef}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.pickerContent}
-                        snapToInterval={40}
+                        snapToInterval={60}
                         decelerationRate="fast"
                     >
                         {ages.map((age) => (
@@ -176,7 +176,10 @@ export default function CompleteOnboardingScreen() {
                                     styles.pickerItem,
                                     userData.age === age && styles.pickerItemSelected
                                 ]}
-                                onPress={() => updateUserData('age', age)}
+                                onPress={() => {
+                                    updateUserData('age', age);
+                                    scrollToAge(age);
+                                }}
                             >
                                 <Text style={[
                                     styles.pickerText,
@@ -199,18 +202,25 @@ export default function CompleteOnboardingScreen() {
         );
     };
 
-    // Селектор веса
     const WeightSelector = () => {
         const weights = Array.from({ length: 121 }, (_, i) => i + 40);
+
+        const scrollToWeight = (weight) => {
+            const index = weights.indexOf(weight);
+            if (weightScrollRef.current && index !== -1) {
+                weightScrollRef.current.scrollTo({ y: index * 60, animated: true });
+            }
+        };
 
         return (
             <View style={styles.selectorContainer}>
                 <View style={styles.pickerContainer}>
                     <View style={styles.selectionIndicator} />
                     <ScrollView
+                        ref={weightScrollRef}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={styles.pickerContent}
-                        snapToInterval={40}
+                        snapToInterval={60}
                         decelerationRate="fast"
                     >
                         {weights.map((weight) => (
@@ -220,7 +230,10 @@ export default function CompleteOnboardingScreen() {
                                     styles.pickerItem,
                                     userData.weight === weight && styles.pickerItemSelected
                                 ]}
-                                onPress={() => updateUserData('weight', weight)}
+                                onPress={() => {
+                                    updateUserData('weight', weight);
+                                    scrollToWeight(weight);
+                                }}
                             >
                                 <Text style={[
                                     styles.pickerText,
@@ -243,7 +256,6 @@ export default function CompleteOnboardingScreen() {
         );
     };
 
-    // Сохранение всех данных
     const saveAllData = async () => {
         if (!userData.name.trim()) {
             Alert.alert('Ошибка', 'Пожалуйста, введите ваше имя');
@@ -252,10 +264,8 @@ export default function CompleteOnboardingScreen() {
         }
 
         try {
-            // Сохраняем все данные пользователя
             await AsyncStorage.setItem('userData', JSON.stringify(userData));
 
-            // Сохраняем выбранные привычки как задачи
             const tasks = userData.habits.map(habit => ({
                 id: habit.id,
                 text: habit.name,
@@ -264,15 +274,16 @@ export default function CompleteOnboardingScreen() {
                 category: habit.category
             }));
             await AsyncStorage.setItem('userTasks', JSON.stringify(tasks));
-
-            // Сохраняем отдельно привычки для профиля
             await AsyncStorage.setItem('userHabits', JSON.stringify(userData.habits));
-
-            // Помечаем онбординг как завершенный
             await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
             await AsyncStorage.setItem('isLoggedIn', 'true');
 
-            // Переходим в главное приложение
+            // Инициализируем начальные значения
+            await AsyncStorage.setItem('totalFirePoints', '0');
+            await AsyncStorage.setItem('moimoiHappiness', '100');
+            await AsyncStorage.setItem('activeSkin', 'default');
+            await AsyncStorage.setItem('ownedSkins', JSON.stringify(['default']));
+
             navigation.reset({
                 index: 0,
                 routes: [{ name: 'Main' }],
@@ -284,7 +295,6 @@ export default function CompleteOnboardingScreen() {
         }
     };
 
-    // Рендер контента для каждого шага
     const renderStepContent = () => {
         const animatedStyle = {
             opacity: fadeAnim,
@@ -292,7 +302,7 @@ export default function CompleteOnboardingScreen() {
         };
 
         switch (currentStep) {
-            case 0: // Приветствие
+            case 0:
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <View style={styles.welcomeContainer}>
@@ -304,7 +314,7 @@ export default function CompleteOnboardingScreen() {
                     </Animated.View>
                 );
 
-            case 1: // Имя
+            case 1:
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <View style={styles.inputContainer}>
@@ -321,21 +331,21 @@ export default function CompleteOnboardingScreen() {
                     </Animated.View>
                 );
 
-            case 2: // Возраст
+            case 2:
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <AgeSelector />
                     </Animated.View>
                 );
 
-            case 3: // Вес
+            case 3:
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <WeightSelector />
                     </Animated.View>
                 );
 
-            case 4: // Привычки
+            case 4:
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <ScrollView
@@ -386,7 +396,7 @@ export default function CompleteOnboardingScreen() {
                     </Animated.View>
                 );
 
-            case 5: // MoiMoi и аватар
+            case 5:
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
@@ -416,7 +426,7 @@ export default function CompleteOnboardingScreen() {
                     </Animated.View>
                 );
 
-            case 6: // Финальный экран
+            case 6:
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <View style={styles.finalStep}>
@@ -458,7 +468,6 @@ export default function CompleteOnboardingScreen() {
         }
     };
 
-    // Проверка возможности перехода дальше
     const canProceed = () => {
         switch (currentStep) {
             case 1: return userData.name.trim().length > 0;
@@ -472,7 +481,6 @@ export default function CompleteOnboardingScreen() {
             colors={['#667eea', '#764ba2']}
             style={styles.container}
         >
-            {/* Хедер с прогрессом */}
             <View style={styles.header}>
                 {currentStep > 0 && (
                     <TouchableOpacity style={styles.backButton} onPress={prevStep}>
@@ -495,7 +503,6 @@ export default function CompleteOnboardingScreen() {
                 </View>
             </View>
 
-            {/* Контент */}
             <View style={styles.content}>
                 <View style={styles.titleContainer}>
                     <Text style={styles.title}>{steps[currentStep].title}</Text>
@@ -505,7 +512,6 @@ export default function CompleteOnboardingScreen() {
                 {renderStepContent()}
             </View>
 
-            {/* Футер с кнопкой */}
             <View style={styles.footer}>
                 <TouchableOpacity
                     style={[
@@ -525,6 +531,7 @@ export default function CompleteOnboardingScreen() {
     );
 }
 
+// Стили остаются такими же как в предыдущей версии
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -553,7 +560,6 @@ const styles = StyleSheet.create({
         height: '100%',
         backgroundColor: '#FFFFFF',
         borderRadius: 3,
-        transition: 'width 0.3s ease',
     },
     progressText: {
         color: 'white',
@@ -632,15 +638,15 @@ const styles = StyleSheet.create({
         top: '50%',
         left: 0,
         right: 0,
-        height: 40,
+        height: 60,
         backgroundColor: 'rgba(255,255,255,0.2)',
         borderRadius: 12,
-        marginTop: -20,
+        marginTop: -30,
         borderWidth: 2,
         borderColor: 'rgba(255,255,255,0.5)',
     },
     pickerItem: {
-        height: 40,
+        height: 60,
         justifyContent: 'center',
         alignItems: 'center',
         marginVertical: 2,

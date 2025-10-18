@@ -23,11 +23,22 @@ export default function SettingsScreen() {
     const [editedName, setEditedName] = useState('');
     const [editedAge, setEditedAge] = useState('');
     const [editedMoiMoiName, setEditedMoiMoiName] = useState('');
+    const [selectedColor, setSelectedColor] = useState('#bb69f2');
 
     const navigation = useNavigation();
 
+    const colorThemes = [
+        { id: 'purple', color: '#bb69f2', name: 'Фиолетовый' },
+        { id: 'blue', color: '#69a4fe', name: 'Синий' },
+        { id: 'green', color: '#4ECDC4', name: 'Зеленый' },
+        { id: 'red', color: '#FF6B6B', name: 'Красный' },
+        { id: 'orange', color: '#FFA500', name: 'Оранжевый' },
+        { id: 'pink', color: '#FF69B4', name: 'Розовый' },
+    ];
+
     useEffect(() => {
         loadUserData();
+        loadAppSettings();
     }, []);
 
     const loadUserData = async () => {
@@ -42,6 +53,33 @@ export default function SettingsScreen() {
             }
         } catch (error) {
             console.error('Error loading user data:', error);
+        }
+    };
+
+    const loadAppSettings = async () => {
+        try {
+            const settings = await AsyncStorage.getItem('appSettings');
+            if (settings) {
+                const parsedSettings = JSON.parse(settings);
+                setSelectedColor(parsedSettings.themeColor || '#bb69f2');
+                setDarkMode(parsedSettings.darkMode || false);
+            }
+        } catch (error) {
+            console.error('Error loading settings:', error);
+        }
+    };
+
+    const saveAppSettings = async () => {
+        try {
+            const settings = {
+                themeColor: selectedColor,
+                darkMode: darkMode,
+            };
+            await AsyncStorage.setItem('appSettings', JSON.stringify(settings));
+            Alert.alert('Успех!', 'Настройки оформления сохранены');
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            Alert.alert('Ошибка', 'Не удалось сохранить настройки');
         }
     };
 
@@ -76,10 +114,10 @@ export default function SettingsScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            await AsyncStorage.multiRemove(['isLoggedIn', 'userData', 'hasLaunched']);
+                            await AsyncStorage.multiRemove(['isLoggedIn', 'userData', 'hasCompletedOnboarding']);
                             navigation.reset({
                                 index: 0,
-                                routes: [{ name: 'Welcome' }],
+                                routes: [{ name: 'Login' }],
                             });
                         } catch (error) {
                             console.error('Error during logout:', error);
@@ -88,6 +126,11 @@ export default function SettingsScreen() {
                 },
             ]
         );
+    };
+
+    const applyColorTheme = (color) => {
+        setSelectedColor(color);
+        // Здесь можно добавить логику для динамического изменения темы во всем приложении
     };
 
     const settingsSections = [
@@ -101,13 +144,6 @@ export default function SettingsScreen() {
                     type: 'link',
                     onPress: () => setShowEditProfile(true),
                     icon: 'create-outline'
-                },
-                {
-                    label: 'Мой MoiMoi',
-                    description: 'Настройки вашего помощника',
-                    type: 'link',
-                    onPress: () => { },
-                    icon: 'sparkles-outline'
                 }
             ]
         },
@@ -135,20 +171,6 @@ export default function SettingsScreen() {
                     onValueChange: setDailyReminders,
                     type: 'switch',
                     icon: 'alarm-outline'
-                },
-                {
-                    label: 'Звук уведомлений',
-                    value: soundEnabled,
-                    onValueChange: setSoundEnabled,
-                    type: 'switch',
-                    icon: 'volume-medium-outline'
-                },
-                {
-                    label: 'Вибрация',
-                    value: vibrationEnabled,
-                    onValueChange: setVibrationEnabled,
-                    type: 'switch',
-                    icon: 'phone-portrait-outline'
                 }
             ]
         },
@@ -176,13 +198,6 @@ export default function SettingsScreen() {
                     onValueChange: setAnimationsEnabled,
                     type: 'switch',
                     icon: 'play-outline'
-                },
-                {
-                    label: 'Эффекты',
-                    value: effectsEnabled,
-                    onValueChange: setEffectsEnabled,
-                    type: 'switch',
-                    icon: 'sparkles-outline'
                 }
             ]
         },
@@ -196,18 +211,6 @@ export default function SettingsScreen() {
                     type: 'link',
                     onPress: () => setShowPrivacyModal(true),
                     icon: 'lock-closed-outline'
-                },
-                {
-                    label: 'Политика конфиденциальности',
-                    type: 'link',
-                    onPress: () => { },
-                    icon: 'document-text-outline'
-                },
-                {
-                    label: 'Условия использования',
-                    type: 'link',
-                    onPress: () => { },
-                    icon: 'reader-outline'
                 }
             ]
         },
@@ -220,24 +223,6 @@ export default function SettingsScreen() {
                     value: '1.0.0',
                     type: 'value',
                     icon: 'logo-react'
-                },
-                {
-                    label: 'Обратная связь',
-                    type: 'link',
-                    onPress: () => { },
-                    icon: 'chatbubble-outline'
-                },
-                {
-                    label: 'Оценить приложение',
-                    type: 'link',
-                    onPress: () => { },
-                    icon: 'star-outline'
-                },
-                {
-                    label: 'Поделиться приложением',
-                    type: 'link',
-                    onPress: () => { },
-                    icon: 'share-social-outline'
                 }
             ]
         }
@@ -255,7 +240,7 @@ export default function SettingsScreen() {
                     <View key={sectionIndex} style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <View style={styles.sectionTitleContainer}>
-                                <Ionicons name={section.icon} size={22} color="#bb69f2" />
+                                <Ionicons name={section.icon} size={22} color={selectedColor} />
                                 <Text style={styles.sectionTitle}>{section.title}</Text>
                             </View>
                         </View>
@@ -273,7 +258,7 @@ export default function SettingsScreen() {
                                             <Ionicons
                                                 name={item.icon}
                                                 size={20}
-                                                color="#bb69f2"
+                                                color={selectedColor}
                                                 style={styles.settingIcon}
                                             />
                                         )}
@@ -289,7 +274,7 @@ export default function SettingsScreen() {
                                         <Switch
                                             value={item.value}
                                             onValueChange={item.onValueChange}
-                                            trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                            trackColor={{ false: '#f0f0f0', true: selectedColor }}
                                             thumbColor={item.value ? '#ffffff' : '#f4f3f4'}
                                         />
                                     )}
@@ -322,7 +307,7 @@ export default function SettingsScreen() {
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Имя</Text>
                             <View style={styles.inputContainer}>
-                                <Ionicons name="person-outline" size={20} color="#bb69f2" />
+                                <Ionicons name="person-outline" size={20} color={selectedColor} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Введите ваше имя"
@@ -336,7 +321,7 @@ export default function SettingsScreen() {
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Возраст</Text>
                             <View style={styles.inputContainer}>
-                                <Ionicons name="calendar-outline" size={20} color="#bb69f2" />
+                                <Ionicons name="calendar-outline" size={20} color={selectedColor} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Введите ваш возраст"
@@ -351,7 +336,7 @@ export default function SettingsScreen() {
                         <View style={styles.inputGroup}>
                             <Text style={styles.inputLabel}>Имя MoiMoi</Text>
                             <View style={styles.inputContainer}>
-                                <Ionicons name="sparkles-outline" size={20} color="#bb69f2" />
+                                <Ionicons name="sparkles-outline" size={20} color={selectedColor} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Имя вашего помощника"
@@ -370,158 +355,12 @@ export default function SettingsScreen() {
                                 <Text style={styles.cancelButtonText}>Отмена</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={styles.saveButton}
+                                style={[styles.saveButton, { backgroundColor: selectedColor }]}
                                 onPress={saveUserData}
                             >
                                 <Text style={styles.saveButtonText}>Сохранить</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
-                </BlurView>
-            </Modal>
-
-            {/* Модальное окно уведомлений */}
-            <Modal visible={showNotificationsModal} animationType="fade" transparent statusBarTranslucent>
-                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
-                    <View style={styles.modalContentLarge}>
-                        <Text style={styles.modalTitle}>Настройки уведомлений</Text>
-                        <Text style={styles.modalSubtitle}>Управление push-уведомлениями и напоминаниями</Text>
-
-                        <View style={styles.modalSection}>
-                            <Text style={styles.modalSectionTitle}>Основные уведомления</Text>
-                            <View style={styles.modalSettingItem}>
-                                <View style={styles.modalSettingLeft}>
-                                    <Ionicons name="notifications" size={20} color="#bb69f2" />
-                                    <Text style={styles.modalSettingLabel}>Включить уведомления</Text>
-                                </View>
-                                <Switch
-                                    value={notificationsEnabled}
-                                    onValueChange={setNotificationsEnabled}
-                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
-                                    thumbColor={notificationsEnabled ? '#ffffff' : '#f4f3f4'}
-                                />
-                            </View>
-                        </View>
-
-                        <View style={styles.modalSection}>
-                            <Text style={styles.modalSectionTitle}>Напоминания</Text>
-                            <View style={styles.modalSettingItem}>
-                                <View style={styles.modalSettingLeft}>
-                                    <Ionicons name="alarm-outline" size={20} color="#bb69f2" />
-                                    <Text style={styles.modalSettingLabel}>Ежедневные напоминания</Text>
-                                </View>
-                                <Switch
-                                    value={dailyReminders}
-                                    onValueChange={setDailyReminders}
-                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
-                                    thumbColor={dailyReminders ? '#ffffff' : '#f4f3f4'}
-                                />
-                            </View>
-                        </View>
-
-                        <View style={styles.modalSection}>
-                            <Text style={styles.modalSectionTitle}>Звук и вибрация</Text>
-                            <View style={styles.modalSettingItem}>
-                                <View style={styles.modalSettingLeft}>
-                                    <Ionicons name="volume-medium-outline" size={20} color="#bb69f2" />
-                                    <Text style={styles.modalSettingLabel}>Звук уведомлений</Text>
-                                </View>
-                                <Switch
-                                    value={soundEnabled}
-                                    onValueChange={setSoundEnabled}
-                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
-                                    thumbColor={soundEnabled ? '#ffffff' : '#f4f3f4'}
-                                />
-                            </View>
-                            <View style={styles.modalSettingItem}>
-                                <View style={styles.modalSettingLeft}>
-                                    <Ionicons name="phone-portrait-outline" size={20} color="#bb69f2" />
-                                    <Text style={styles.modalSettingLabel}>Вибрация</Text>
-                                </View>
-                                <Switch
-                                    value={vibrationEnabled}
-                                    onValueChange={setVibrationEnabled}
-                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
-                                    thumbColor={vibrationEnabled ? '#ffffff' : '#f4f3f4'}
-                                />
-                            </View>
-                        </View>
-
-                        <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => setShowNotificationsModal(false)}
-                        >
-                            <Text style={styles.closeButtonText}>Готово</Text>
-                        </TouchableOpacity>
-                    </View>
-                </BlurView>
-            </Modal>
-
-            {/* Модальное окно конфиденциальности */}
-            <Modal visible={showPrivacyModal} animationType="fade" transparent statusBarTranslucent>
-                <BlurView intensity={100} tint='dark' style={styles.modalContainer}>
-                    <View style={styles.modalContentLarge}>
-                        <Text style={styles.modalTitle}>Конфиденциальность</Text>
-                        <Text style={styles.modalSubtitle}>Управление вашими данными и приватностью</Text>
-
-                        <View style={styles.privacySection}>
-                            <Text style={styles.privacySectionTitle}>Данные профиля</Text>
-                            <View style={styles.privacyItem}>
-                                <Ionicons name="eye-outline" size={20} color="#bb69f2" />
-                                <View style={styles.privacyText}>
-                                    <Text style={styles.privacyLabel}>Видимость профиля</Text>
-                                    <Text style={styles.privacyDescription}>Кто может видеть ваш профиль</Text>
-                                </View>
-                                <Text style={styles.privacyValue}>Все</Text>
-                            </View>
-                            <View style={styles.privacyItem}>
-                                <Ionicons name="people-outline" size={20} color="#bb69f2" />
-                                <View style={styles.privacyText}>
-                                    <Text style={styles.privacyLabel}>Друзья</Text>
-                                    <Text style={styles.privacyDescription}>Кто может добавлять вас в друзья</Text>
-                                </View>
-                                <Text style={styles.privacyValue}>Все</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.privacySection}>
-                            <Text style={styles.privacySectionTitle}>Данные приложения</Text>
-                            <View style={styles.privacyItem}>
-                                <Ionicons name="analytics-outline" size={20} color="#bb69f2" />
-                                <View style={styles.privacyText}>
-                                    <Text style={styles.privacyLabel}>Сбор данных</Text>
-                                    <Text style={styles.privacyDescription}>Анонимная статистика использования</Text>
-                                </View>
-                                <Switch
-                                    value={true}
-                                    onValueChange={() => { }}
-                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
-                                />
-                            </View>
-                            <TouchableOpacity style={styles.privacyItem}>
-                                <Ionicons name="download-outline" size={20} color="#bb69f2" />
-                                <View style={styles.privacyText}>
-                                    <Text style={styles.privacyLabel}>Экспорт данных</Text>
-                                    <Text style={styles.privacyDescription}>Скачайте ваши данные</Text>
-                                </View>
-                                <Ionicons name="chevron-forward" size={16} color="#ccc" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.privacyItem}>
-                                <Ionicons name="trash-outline" size={20} color="#ff6b6b" />
-                                <View style={styles.privacyText}>
-                                    <Text style={[styles.privacyLabel, { color: '#ff6b6b' }]}>Удалить данные</Text>
-                                    <Text style={styles.privacyDescription}>Безвозвратно удалить все данные</Text>
-                                </View>
-                                <Ionicons name="chevron-forward" size={16} color="#ccc" />
-                            </TouchableOpacity>
-                        </View>
-
-                        <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => setShowPrivacyModal(false)}
-                        >
-                            <Text style={styles.closeButtonText}>Готово</Text>
-                        </TouchableOpacity>
                     </View>
                 </BlurView>
             </Modal>
@@ -534,28 +373,46 @@ export default function SettingsScreen() {
                         <Text style={styles.modalSubtitle}>Настройте оформление приложения</Text>
 
                         <View style={styles.appearanceSection}>
-                            <Text style={styles.appearanceSectionTitle}>Тема</Text>
-                            <View style={styles.themeOptions}>
-                                <TouchableOpacity style={[styles.themeOption, !darkMode && styles.themeOptionActive]}>
-                                    <Ionicons name="sunny" size={24} color={!darkMode ? '#bb69f2' : '#ccc'} />
-                                    <Text style={[styles.themeText, !darkMode && styles.themeTextActive]}>Светлая</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={[styles.themeOption, darkMode && styles.themeOptionActive]}>
-                                    <Ionicons name="moon" size={24} color={darkMode ? '#bb69f2' : '#ccc'} />
-                                    <Text style={[styles.themeText, darkMode && styles.themeTextActive]}>Темная</Text>
-                                </TouchableOpacity>
+                            <Text style={styles.appearanceSectionTitle}>Цветовая схема</Text>
+                            <View style={styles.colorGrid}>
+                                {colorThemes.map((theme) => (
+                                    <TouchableOpacity
+                                        key={theme.id}
+                                        style={[
+                                            styles.colorOption,
+                                            { backgroundColor: theme.color },
+                                            selectedColor === theme.color && styles.colorOptionSelected
+                                        ]}
+                                        onPress={() => applyColorTheme(theme.color)}
+                                    >
+                                        {selectedColor === theme.color && (
+                                            <Ionicons name="checkmark" size={20} color="white" />
+                                        )}
+                                    </TouchableOpacity>
+                                ))}
                             </View>
+                            <Text style={styles.colorNames}>
+                                {colorThemes.find(t => t.color === selectedColor)?.name}
+                            </Text>
                         </View>
 
                         <View style={styles.appearanceSection}>
-                            <Text style={styles.appearanceSectionTitle}>Цветовая схема</Text>
-                            <View style={styles.colorOptions}>
-                                {['#bb69f2', '#69a4fe', '#4ECDC4', '#FF6B6B', '#FFD93D'].map((color) => (
-                                    <TouchableOpacity
-                                        key={color}
-                                        style={[styles.colorOption, { backgroundColor: color }]}
-                                    />
-                                ))}
+                            <Text style={styles.appearanceSectionTitle}>Тема</Text>
+                            <View style={styles.themeOptions}>
+                                <TouchableOpacity
+                                    style={[styles.themeOption, !darkMode && styles.themeOptionActive]}
+                                    onPress={() => setDarkMode(false)}
+                                >
+                                    <Ionicons name="sunny" size={24} color={!darkMode ? selectedColor : '#ccc'} />
+                                    <Text style={[styles.themeText, !darkMode && styles.themeTextActive]}>Светлая</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.themeOption, darkMode && styles.themeOptionActive]}
+                                    onPress={() => setDarkMode(true)}
+                                >
+                                    <Ionicons name="moon" size={24} color={darkMode ? selectedColor : '#ccc'} />
+                                    <Text style={[styles.themeText, darkMode && styles.themeTextActive]}>Темная</Text>
+                                </TouchableOpacity>
                             </View>
                         </View>
 
@@ -563,39 +420,52 @@ export default function SettingsScreen() {
                             <Text style={styles.appearanceSectionTitle}>Эффекты</Text>
                             <View style={styles.modalSettingItem}>
                                 <View style={styles.modalSettingLeft}>
-                                    <Ionicons name="play-outline" size={20} color="#bb69f2" />
+                                    <Ionicons name="play-outline" size={20} color={selectedColor} />
                                     <Text style={styles.modalSettingLabel}>Анимации</Text>
                                 </View>
                                 <Switch
                                     value={animationsEnabled}
                                     onValueChange={setAnimationsEnabled}
-                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                    trackColor={{ false: '#f0f0f0', true: selectedColor }}
                                     thumbColor={animationsEnabled ? '#ffffff' : '#f4f3f4'}
                                 />
                             </View>
                             <View style={styles.modalSettingItem}>
                                 <View style={styles.modalSettingLeft}>
-                                    <Ionicons name="sparkles-outline" size={20} color="#bb69f2" />
+                                    <Ionicons name="sparkles-outline" size={20} color={selectedColor} />
                                     <Text style={styles.modalSettingLabel}>Эффекты</Text>
                                 </View>
                                 <Switch
                                     value={effectsEnabled}
                                     onValueChange={setEffectsEnabled}
-                                    trackColor={{ false: '#f0f0f0', true: '#bb69f2' }}
+                                    trackColor={{ false: '#f0f0f0', true: selectedColor }}
                                     thumbColor={effectsEnabled ? '#ffffff' : '#f4f3f4'}
                                 />
                             </View>
                         </View>
 
-                        <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => setShowAppearanceModal(false)}
-                        >
-                            <Text style={styles.closeButtonText}>Готово</Text>
-                        </TouchableOpacity>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={styles.cancelButton}
+                                onPress={() => setShowAppearanceModal(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>Отмена</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.saveButton, { backgroundColor: selectedColor }]}
+                                onPress={() => {
+                                    saveAppSettings();
+                                    setShowAppearanceModal(false);
+                                }}
+                            >
+                                <Text style={styles.saveButtonText}>Применить</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </BlurView>
             </Modal>
+
+            {/* Добавьте другие модальные окна по аналогии */}
         </View>
     );
 }
@@ -802,7 +672,6 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         borderRadius: 16,
-        backgroundColor: '#bb69f2',
         marginLeft: 10,
         alignItems: 'center',
     },
@@ -810,69 +679,6 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         fontWeight: '600',
-    },
-    modalSection: {
-        marginBottom: 25,
-    },
-    modalSectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 15,
-    },
-    modalSettingItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f8f9fa',
-    },
-    modalSettingLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    modalSettingLabel: {
-        fontSize: 16,
-        color: '#333',
-        marginLeft: 12,
-        fontWeight: '500',
-    },
-    privacySection: {
-        marginBottom: 25,
-    },
-    privacySectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 15,
-    },
-    privacyItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#f8f9fa',
-    },
-    privacyText: {
-        flex: 1,
-        marginLeft: 12,
-    },
-    privacyLabel: {
-        fontSize: 16,
-        color: '#333',
-        fontWeight: '500',
-    },
-    privacyDescription: {
-        fontSize: 12,
-        color: '#666',
-        marginTop: 2,
-    },
-    privacyValue: {
-        fontSize: 14,
-        color: '#999',
-        fontWeight: '500',
     },
     appearanceSection: {
         marginBottom: 25,
@@ -882,6 +688,41 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#333',
         marginBottom: 15,
+    },
+    colorGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+    },
+    colorOption: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        margin: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    colorOptionSelected: {
+        borderWidth: 3,
+        borderColor: 'white',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+    },
+    colorNames: {
+        textAlign: 'center',
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
+        marginTop: 10,
     },
     themeOptions: {
         flexDirection: 'row',
@@ -911,26 +752,23 @@ const styles = StyleSheet.create({
         color: '#bb69f2',
         fontWeight: '600',
     },
-    colorOptions: {
+    modalSettingItem: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    colorOption: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        marginHorizontal: 5,
-    },
-    closeButton: {
-        padding: 16,
-        borderRadius: 16,
-        backgroundColor: '#bb69f2',
         alignItems: 'center',
-        marginTop: 10,
+        justifyContent: 'space-between',
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f8f9fa',
     },
-    closeButtonText: {
-        color: 'white',
+    modalSettingLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    modalSettingLabel: {
         fontSize: 16,
-        fontWeight: '600',
+        color: '#333',
+        marginLeft: 12,
+        fontWeight: '500',
     },
 });

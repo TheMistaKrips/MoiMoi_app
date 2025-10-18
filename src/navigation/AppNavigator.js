@@ -48,20 +48,6 @@ function MainTabs() {
                 }}
             />
             <Tab.Screen
-                name="Chat"
-                component={ChatScreen}
-                options={{
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="chatbubble-outline" size={size} color={color} />
-                    ),
-                    title: 'Чат',
-                    headerStyle: {
-                        backgroundColor: '#bb69f2',
-                    },
-                    headerTintColor: 'white',
-                }}
-            />
-            <Tab.Screen
                 name="Calendar"
                 component={CalendarScreen}
                 options={{
@@ -83,6 +69,20 @@ function MainTabs() {
                         <Ionicons name="storefront-outline" size={size} color={color} />
                     ),
                     title: 'Магазин',
+                    headerStyle: {
+                        backgroundColor: '#bb69f2',
+                    },
+                    headerTintColor: 'white',
+                }}
+            />
+            <Tab.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="chatbubble-outline" size={size} color={color} />
+                    ),
+                    title: 'Чат',
                     headerStyle: {
                         backgroundColor: '#bb69f2',
                     },
@@ -147,11 +147,6 @@ export default function AppNavigator() {
             const userLoggedIn = await AsyncStorage.getItem('isLoggedIn');
             const onboardingCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
 
-            console.log('Auth state check:', {
-                userLoggedIn,
-                onboardingCompleted
-            });
-
             setIsLoggedIn(userLoggedIn === 'true');
             setHasCompletedOnboarding(onboardingCompleted === 'true');
         } catch (error) {
@@ -165,11 +160,6 @@ export default function AppNavigator() {
         return null;
     }
 
-    console.log('Rendering navigator with:', {
-        isLoggedIn,
-        hasCompletedOnboarding
-    });
-
     return (
         <Stack.Navigator
             screenOptions={{
@@ -177,7 +167,6 @@ export default function AppNavigator() {
             }}
         >
             {!isLoggedIn ? (
-                // Пользователь не залогинен - показываем только экран входа
                 <Stack.Screen
                     name="Login"
                     component={GoogleLoginPage}
@@ -186,13 +175,11 @@ export default function AppNavigator() {
                     }}
                 />
             ) : !hasCompletedOnboarding ? (
-                // Пользователь залогинен, но не завершил онбординг
                 <Stack.Screen
                     name="Onboarding"
                     component={OnboardingStack}
                 />
             ) : (
-                // Пользователь залогинен и завершил онбординг - показываем главное приложение
                 <Stack.Screen
                     name="Main"
                     component={MainTabs}
