@@ -6,15 +6,13 @@ import { Ionicons } from '@expo/vector-icons';
 
 // Импорт экранов
 import GoogleLoginPage from '../screens/Onboarding/GoogleLoginPage';
-import WelcomeScreen from '../screens/Onboarding/WelcomeScreen';
-import PermissionsScreen from '../screens/Onboarding/PermissionsScreen';
-import HabitsScreen from '../screens/Onboarding/HabitsScreen';
-import RegistrationScreen from '../screens/Onboarding/RegistrationScreen';
+import CompleteOnboardingScreen from '../screens/Onboarding/CompleteOnboardingScreen';
 import HomeScreen from '../screens/Main/HomeScreen';
 import ProfileScreen from '../screens/Main/ProfileScreen';
 import ChatScreen from '../screens/Main/ChatScreen';
 import CalendarScreen from '../screens/Main/CalendarScreen';
 import SettingsScreen from '../screens/Main/SettingsScreen';
+import ShopScreen from '../screens/Main/ShopScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -78,6 +76,20 @@ function MainTabs() {
                 }}
             />
             <Tab.Screen
+                name="Shop"
+                component={ShopScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="storefront-outline" size={size} color={color} />
+                    ),
+                    title: 'Магазин',
+                    headerStyle: {
+                        backgroundColor: '#bb69f2',
+                    },
+                    headerTintColor: 'white',
+                }}
+            />
+            <Tab.Screen
                 name="Profile"
                 component={ProfileScreen}
                 options={{
@@ -85,21 +97,6 @@ function MainTabs() {
                         <Ionicons name="person-outline" size={size} color={color} />
                     ),
                     title: 'Профиль',
-                    headerStyle: {
-                        backgroundColor: '#bb69f2',
-                    },
-                    headerTintColor: 'white',
-                }}
-            />
-            {/* Добавляем Settings в таб-бар */}
-            <Tab.Screen
-                name="Settings"
-                component={SettingsScreen}
-                options={{
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="settings-outline" size={size} color={color} />
-                    ),
-                    title: 'Настройки',
                     headerStyle: {
                         backgroundColor: '#bb69f2',
                     },
@@ -119,15 +116,12 @@ function OnboardingStack() {
             }}
         >
             <Stack.Screen
-                name="Welcome"
-                component={WelcomeScreen}
+                name="CompleteOnboarding"
+                component={CompleteOnboardingScreen}
                 options={{
                     animation: 'fade',
                 }}
             />
-            <Stack.Screen name="Permissions" component={PermissionsScreen} />
-            <Stack.Screen name="Habits" component={HabitsScreen} />
-            <Stack.Screen name="Registration" component={RegistrationScreen} />
             <Stack.Screen
                 name="Main"
                 component={MainTabs}
@@ -199,24 +193,10 @@ export default function AppNavigator() {
                 />
             ) : (
                 // Пользователь залогинен и завершил онбординг - показываем главное приложение
-                <>
-                    <Stack.Screen
-                        name="Main"
-                        component={MainTabs}
-                    />
-                    <Stack.Screen
-                        name="Settings"
-                        component={SettingsScreen}
-                        options={{
-                            headerShown: true,
-                            title: 'Настройки',
-                            headerStyle: {
-                                backgroundColor: '#bb69f2',
-                            },
-                            headerTintColor: 'white',
-                        }}
-                    />
-                </>
+                <Stack.Screen
+                    name="Main"
+                    component={MainTabs}
+                />
             )}
         </Stack.Navigator>
     );

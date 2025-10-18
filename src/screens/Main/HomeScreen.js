@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, TextInput, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { requestNotificationPermissions, scheduleDailyReminder } from '../../services/notifications';
 
 export default function HomeScreen() {
     const [userName, setUserName] = useState('Пользователь');
@@ -11,11 +12,23 @@ export default function HomeScreen() {
     const [newTask, setNewTask] = useState('');
     const [userData, setUserData] = useState(null);
 
+    // НОВЫЕ СОСТОЯНИЯ ДЛЯ СИСТЕМЫ ОГОНЬКОВ И СЧАСТЬЯ
+    const [firePoints, setFirePoints] = useState(0);
+    const [moimoiHappiness, setMoimoiHappiness] = useState(100);
+    const [dailyFireLimit, setDailyFireLimit] = useState(5);
+    const [firesEarnedToday, setFiresEarnedToday] = useState(0);
+    const [showFire, setShowFire] = useState(false);
+    const [activeSkin, setActiveSkin] = useState('default');
+
     useEffect(() => {
         loadUserData();
         loadTasks();
+        loadMoimoiState();
+        initializeNotifications();
+        startHappinessDecay();
     }, []);
 
+    // ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ
     const loadUserData = async () => {
         try {
             const userDataString = await AsyncStorage.getItem('userData');
@@ -48,6 +61,163 @@ export default function HomeScreen() {
         }
     };
 
+    // СИСТЕМА ОГОНЬКОВ И СЧАСТЬЯ
+    const loadMoimoiState = async () => {
+        try {
+            const savedHappiness = await AsyncStorage.getItem('moimoiHappiness');
+            const savedFires = await AsyncStorage.getItem('totalFirePoints');
+            const today = new Date().toDateString();
+            const todayFires = await AsyncStorage.getItem(`fires_${today}`);
+            const skin = await AsyncStorage.getItem('activeSkin');
+
+            if (savedHappiness) setMoimoiHappiness(parseInt(savedHappiness));
+            if (savedFires) setFirePoints(parseInt(savedFires));
+            if (todayFires) setFiresEarnedToday(parseInt(todayFires));
+            if (skin) setActiveSkin(skin);
+        } catch (error) {
+            console.error('Error loading moimoi state:', error);
+        }
+    };
+
+    // УМЕНЬШЕНИЕ СЧАСТЬЯ СО ВРЕМЕНЕМ
+    const startHappinessDecay = () => {
+        const happinessInterval = setInterval(async () => {
+            setMoimoiHappiness(prev => {
+                const newHappiness = Math.max(0, prev - 1);
+
+                // Сохраняем при значительном изменении
+                if (newHappiness % 10 === 0) {
+                    AsyncStorage.setItem('moimoiHappiness', newHappiness.toString());
+                }
+
+                return newHappiness;
+            });
+        }, 60000); // -1 каждую минуту
+
+        return () => clearInterval(happinessInterval);
+    };
+
+    // ОБНОВЛЕННАЯ ФУНКЦИЯ ВЫПОЛНЕНИЯ ЗАДАЧИ
+    const toggleTask = async (taskId) => {
+        const today = new Date().toDateString();
+        const task = tasks.find(t => t.id === taskId);
+
+        // Проверяем, не выполнена ли уже задача сегодня
+        const lastCompletion = await AsyncStorage.getItem(`task_${taskId}_last_completion`);
+        if (lastCompletion === today && task.completed) {
+            Alert.alert('Уже выполнено', 'Эта задача уже выполнена сегодня!');
+            return;
+        }
+
+        // Проверяем лимит "Огоньков" только за новое выполнение
+        const todayFires = parseInt(await AsyncStorage.getItem(`fires_${today}`) || '0');
+        if (todayFires >= dailyFireLimit && !task.completed) {
+            Alert.alert('Лимит достигнут', 'Вы уже получили максимальное количество Огоньков сегодня!');
+            return;
+        }
+
+        // Обновляем задачу
+        const updatedTasks = tasks.map(task =>
+            task.id === taskId ? { ...task, completed: !task.completed } : task
+        );
+
+        // Начисляем "Огоньки" только за новое выполнение
+        if (!task.completed) {
+            const newFires = todayFires + 1;
+            await AsyncStorage.setItem(`fires_${today}`, newFires.toString());
+            await AsyncStorage.setItem('totalFirePoints', (firePoints + 1).toString());
+
+            setFirePoints(prev => prev + 1);
+            setFiresEarnedToday(newFires);
+
+            // Увеличиваем счастье персонажа
+            const newHappiness = Math.min(100, moimoiHappiness + 15);
+            setMoimoiHappiness(newHappiness);
+            await AsyncStorage.setItem('moimoiHappiness', newHappiness.toString());
+
+            // Показываем анимацию получения "Огонька"
+            showFireAnimation();
+        } else {
+            // Снимаем "Огонек" при отмене выполнения (только если сегодня выполняли)
+            if (lastCompletion === today) {
+                const newFires = Math.max(0, todayFires - 1);
+                await AsyncStorage.setItem(`fires_${today}`, newFires.toString());
+                await AsyncStorage.setItem('totalFirePoints', Math.max(0, firePoints - 1).toString());
+
+                setFirePoints(prev => Math.max(0, prev - 1));
+                setFiresEarnedToday(newFires);
+            }
+        }
+
+        // Сохраняем дату последнего выполнения
+        if (!task.completed) {
+            await AsyncStorage.setItem(`task_${taskId}_last_completion`, today);
+        }
+
+        setTasks(updatedTasks);
+        saveTasks(updatedTasks);
+    };
+
+    // АНИМАЦИЯ ПОЛУЧЕНИЯ ОГОНЬКА
+    const showFireAnimation = () => {
+        setShowFire(true);
+        setTimeout(() => setShowFire(false), 2000);
+    };
+
+    // ФУНКЦИЯ ВЫБОРА АНИМАЦИИ ПО УРОВНЮ СЧАСТЬЯ И СКИНУ
+    const getMoimoiAnimation = () => {
+        let animationName = 'moimoi_';
+
+        // Добавляем префикс скина
+        if (activeSkin !== 'default') {
+            animationName += activeSkin + '_';
+        }
+
+        // Определяем состояние по уровню счастья
+        if (moimoiHappiness >= 80) {
+            animationName += 'happy';
+        } else if (moimoiHappiness >= 50) {
+            animationName += 'normal';
+        } else if (moimoiHappiness >= 20) {
+            animationName += 'sad';
+        } else {
+            animationName += 'sleeping';
+        }
+
+        // Временно используем стандартную анимацию (замените на свои файлы)
+        return require('../../../assets/Animations/moimoi_animation_test.json');
+    };
+
+    // КОМПОНЕНТ АНИМАЦИИ "ОГОНЬКА"
+    const FireAnimation = () => {
+        if (!showFire) return null;
+
+        return (
+            <View style={styles.fireAnimationContainer}>
+                <LottieView
+                    source={require('../../../assets/Animations/fire_animation.json')}
+                    autoPlay
+                    loop={false}
+                    style={styles.fireAnimation}
+                />
+                <Text style={styles.fireText}>+1 Огонёк!</Text>
+            </View>
+        );
+    };
+
+    // СИСТЕМА УВЕДОМЛЕНИЙ
+    const initializeNotifications = async () => {
+        try {
+            const permissionsGranted = await requestNotificationPermissions();
+            if (permissionsGranted) {
+                await scheduleDailyReminder(20, 0);
+            }
+        } catch (error) {
+            console.error('Error initializing notifications:', error);
+        }
+    };
+
+    // ДОБАВЛЕНИЕ НОВОЙ ЗАДАЧИ
     const addTask = () => {
         if (newTask.trim()) {
             const task = {
@@ -64,14 +234,7 @@ export default function HomeScreen() {
         }
     };
 
-    const toggleTask = (taskId) => {
-        const updatedTasks = tasks.map(task =>
-            task.id === taskId ? { ...task, completed: !task.completed } : task
-        );
-        setTasks(updatedTasks);
-        saveTasks(updatedTasks);
-    };
-
+    // УДАЛЕНИЕ ЗАДАЧИ
     const deleteTask = (taskId) => {
         Alert.alert(
             'Удалить задачу',
@@ -104,26 +267,39 @@ export default function HomeScreen() {
             {/* MoiMoi Animation Section */}
             <View style={styles.moimoiContainer}>
                 <LottieView
-                    source={require('../../../assets/Animations/moimoi_animation_test.json')}
+                    source={getMoimoiAnimation()}
                     autoPlay
                     loop
                     style={styles.moimoiAnimation}
                 />
+
+                {/* Шкала счастья */}
+                <View style={styles.happinessBar}>
+                    <View style={[styles.happinessFill, { width: `${moimoiHappiness}%` }]} />
+                </View>
+                <Text style={styles.happinessText}>
+                    {moimoiHappiness >= 80 ? 'Счастлив! 😊' :
+                        moimoiHappiness >= 50 ? 'Нормально 🙂' :
+                            moimoiHappiness >= 20 ? 'Грустит 😔' : 'Спит... 💤'}
+                </Text>
             </View>
 
             {/* Stats Section */}
             <View style={styles.statsContainer}>
                 <View style={styles.statItem}>
                     <Text style={styles.statValue}>Lvl 1</Text>
-                    <Text style={styles.statLabel}>Уровень MoiMoi</Text>
+                    <Text style={styles.statLabel}>Уровень</Text>
                 </View>
                 <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{userData?.moimoiName || 'Moi'}</Text>
-                    <Text style={styles.statLabel}>Имя MoiMoi</Text>
+                    <View style={styles.fireStat}>
+                        <Ionicons name="flame" size={20} color="#FF6B35" />
+                        <Text style={styles.statValue}>{firePoints}</Text>
+                    </View>
+                    <Text style={styles.statLabel}>Огоньки</Text>
                 </View>
                 <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{completedTasks}</Text>
-                    <Text style={styles.statLabel}>Выполнено</Text>
+                    <Text style={styles.statValue}>{firesEarnedToday}/{dailyFireLimit}</Text>
+                    <Text style={styles.statLabel}>Сегодня</Text>
                 </View>
             </View>
 
@@ -218,6 +394,9 @@ export default function HomeScreen() {
                     </View>
                 </View>
             </Modal>
+
+            {/* Анимация огонька */}
+            <FireAnimation />
         </View>
     );
 }
@@ -251,6 +430,48 @@ const styles = StyleSheet.create({
     moimoiAnimation: {
         width: 250,
         height: 250,
+    },
+    // НОВЫЕ СТИЛИ ДЛЯ СИСТЕМЫ ОГОНЬКОВ И СЧАСТЬЯ
+    happinessBar: {
+        width: '80%',
+        height: 8,
+        backgroundColor: '#e9ecef',
+        borderRadius: 4,
+        marginTop: 10,
+        overflow: 'hidden',
+    },
+    happinessFill: {
+        height: '100%',
+        backgroundColor: '#4CAF50',
+        borderRadius: 4,
+    },
+    happinessText: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 5,
+        fontWeight: '500',
+    },
+    fireAnimationContainer: {
+        position: 'absolute',
+        top: '30%',
+        left: '50%',
+        transform: [{ translateX: -50 }, { translateY: -50 }],
+        alignItems: 'center',
+        zIndex: 1000,
+    },
+    fireAnimation: {
+        width: 100,
+        height: 100,
+    },
+    fireText: {
+        color: '#FF6B35',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginTop: 10,
+    },
+    fireStat: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     statsContainer: {
         flexDirection: 'row',
