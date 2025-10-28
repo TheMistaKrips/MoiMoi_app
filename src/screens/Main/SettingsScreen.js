@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Te
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../context/ThemeContext';
 import * as ImagePicker from 'expo-image-picker';
+import { CommonActions } from '@react-navigation/native';
+import { reset } from '../../navigation/RootNavigation';
 
 export default function SettingsScreen() {
     const {
@@ -156,11 +158,33 @@ export default function SettingsScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         try {
+                            // 1. Очищаем данные
                             await AsyncStorage.multiRemove(['isLoggedIn', 'userData', 'hasCompletedOnboarding']);
-                            navigation.reset({
-                                index: 0,
-                                routes: [{ name: 'Onboarding' }],
-                            });
+
+                            // 2. Закрываем все модальные окна
+                            setShowEditProfile(false);
+                            setShowNotificationsModal(false);
+                            setShowAppearanceModal(false);
+                            setShowDataManagementModal(false);
+                            setShowAboutModal(false);
+                            setShowPrivacyModal(false);
+
+                            // 3. Пробуем навигацию через несколько уровней
+                            const rootNav = navigation.getParent()?.getParent()?.getParent();
+                            if (rootNav) {
+                                rootNav.reset({
+                                    index: 0,
+                                    routes: [{ name: 'Onboarding' }],
+                                });
+                            } else {
+                                // 4. Если навигация не сработала - перезагружаем приложение
+                                if (typeof Updates !== 'undefined' && Updates.reloadAsync) {
+                                    await Updates.reloadAsync();
+                                } else {
+                                    // Крайний случай - просто выходим из приложения
+                                    Alert.alert('Перезапустите приложение вручную', 'Данные очищены, перезапустите приложение');
+                                }
+                            }
                         } catch (error) {
                             console.error('Error during logout:', error);
                         }

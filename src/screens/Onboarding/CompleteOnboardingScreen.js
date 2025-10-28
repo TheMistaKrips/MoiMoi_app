@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     View,
     Text,
@@ -9,7 +9,8 @@ import {
     Alert,
     Image,
     Animated,
-    Dimensions
+    Dimensions,
+    PanResponder
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,17 +19,17 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const defaultHabits = [
-    { id: '1', name: 'Упражнения', icon: 'fitness', selected: false, category: 'health' },
-    { id: '2', name: 'Чтение', icon: 'book', selected: false, category: 'education' },
-    { id: '3', name: 'Медитация', icon: 'leaf', selected: false, category: 'mindfulness' },
-    { id: '4', name: 'Пить воду', icon: 'water', selected: false, category: 'health' },
-    { id: '5', name: 'Сон', icon: 'moon', selected: false, category: 'health' },
-    { id: '6', name: 'Учеба', icon: 'school', selected: false, category: 'education' },
-    { id: '7', name: 'Прогулка', icon: 'walk', selected: false, category: 'health' },
-    { id: '8', name: 'Планирование', icon: 'calendar', selected: false, category: 'productivity' },
+    { id: '1', name: 'Упражнения', icon: 'fitness-outline', selected: false, category: 'health' },
+    { id: '2', name: 'Чтение', icon: 'book-outline', selected: false, category: 'education' },
+    { id: '3', name: 'Медитация', icon: 'leaf-outline', selected: false, category: 'mindfulness' },
+    { id: '4', name: 'Пить воду', icon: 'water-outline', selected: false, category: 'health' },
+    { id: '5', name: 'Сон', icon: 'moon-outline', selected: false, category: 'health' },
+    { id: '6', name: 'Учеба', icon: 'school-outline', selected: false, category: 'education' },
+    { id: '7', name: 'Прогулка', icon: 'walk-outline', selected: false, category: 'health' },
+    { id: '8', name: 'Планирование', icon: 'calendar-outline', selected: false, category: 'productivity' },
 ];
 
 export default function CompleteOnboardingScreen() {
@@ -47,8 +48,14 @@ export default function CompleteOnboardingScreen() {
         registeredAt: new Date().toISOString()
     });
 
+    const [habits, setHabits] = useState(defaultHabits);
+    const [inputMode, setInputMode] = useState(false);
+    const [tempValue, setTempValue] = useState('');
+
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
+    const scaleAnim = useRef(new Animated.Value(0.9)).current;
+    const bounceAnim = useRef(new Animated.Value(1)).current;
 
     const ageScrollRef = useRef(null);
     const weightScrollRef = useRef(null);
@@ -57,13 +64,23 @@ export default function CompleteOnboardingScreen() {
     const steps = [
         { title: 'Добро пожаловать! 👋', subtitle: 'Создадим твой идеальный профиль' },
         { title: 'Как тебя зовут? ✨', subtitle: 'Как мы можем к тебе обращаться?' },
-        { title: 'Твой возраст 🎂', subtitle: 'Выбери свой возраст' },
-        { title: 'Твой вес 💪', subtitle: 'Мы сделаем тебе комплимент!' },
-        { title: 'Твой рост 📏', subtitle: 'Для точных расчетов и рекомендаций' },
+        { title: 'Твой возраст 🎂', subtitle: 'Сколько тебе лет?' },
+        { title: 'Твой вес 💪', subtitle: 'Сколько ты весишь?' },
+        { title: 'Твой рост 📏', subtitle: 'Какой у тебя рост?' },
         { title: 'Выбери привычки 🎯', subtitle: 'Что будем улучшать вместе?' },
         { title: 'Твой MoiMoi 🌟', subtitle: 'Как назовешь своего помощника?' },
         { title: 'Готово! 🎉', subtitle: 'Начинаем наше путешествие!' }
     ];
+
+    // Анимация при монтировании
+    useEffect(() => {
+        animateStep();
+    }, []);
+
+    // Анимация при смене шага
+    useEffect(() => {
+        animateStep();
+    }, [currentStep]);
 
     const updateUserDataState = (field, value) => {
         setUserData(prev => ({
@@ -72,27 +89,48 @@ export default function CompleteOnboardingScreen() {
         }));
     };
 
-    const animateStep = (direction = 'next') => {
+    const animateStep = () => {
+        // Сброс анимаций
         fadeAnim.setValue(0);
-        slideAnim.setValue(direction === 'next' ? 50 : -50);
+        slideAnim.setValue(50);
+        scaleAnim.setValue(0.9);
+        bounceAnim.setValue(1);
 
+        // Параллельные анимации
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 1,
-                duration: 400,
+                duration: 600,
                 useNativeDriver: true,
             }),
             Animated.timing(slideAnim, {
                 toValue: 0,
-                duration: 400,
+                duration: 600,
+                useNativeDriver: true,
+            }),
+            Animated.timing(scaleAnim, {
+                toValue: 1,
+                duration: 600,
+                useNativeDriver: true,
+            }),
+            Animated.spring(bounceAnim, {
+                toValue: 1.05,
+                friction: 3,
+                tension: 40,
                 useNativeDriver: true,
             })
-        ]).start();
+        ]).start(() => {
+            Animated.spring(bounceAnim, {
+                toValue: 1,
+                friction: 3,
+                tension: 40,
+                useNativeDriver: true,
+            }).start();
+        });
     };
 
     const nextStep = () => {
         if (currentStep < steps.length - 1) {
-            animateStep('next');
             setCurrentStep(prev => prev + 1);
         } else {
             saveAllData();
@@ -101,7 +139,6 @@ export default function CompleteOnboardingScreen() {
 
     const prevStep = () => {
         if (currentStep > 0) {
-            animateStep('prev');
             setCurrentStep(prev => prev - 1);
         }
     };
@@ -126,9 +163,11 @@ export default function CompleteOnboardingScreen() {
     };
 
     const toggleHabit = (habitId) => {
-        const updatedHabits = defaultHabits.map(habit =>
+        const updatedHabits = habits.map(habit =>
             habit.id === habitId ? { ...habit, selected: !habit.selected } : habit
         );
+
+        setHabits(updatedHabits);
 
         const selectedHabits = updatedHabits.filter(h => h.selected);
         updateUserDataState('habits', selectedHabits);
@@ -161,196 +200,307 @@ export default function CompleteOnboardingScreen() {
     };
 
     const calculateBMI = (weight, height) => {
+        if (!weight || !height || height === 0) return null;
         const heightInMeters = height / 100;
-        return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+        const bmi = weight / (heightInMeters * heightInMeters);
+        return bmi.toFixed(1);
     };
 
     const getBMICategory = (bmi) => {
+        if (!bmi) return { category: 'Недостаточно данных', color: '#666', advice: 'Введите вес и рост' };
         if (bmi < 18.5) return { category: 'Недостаточный вес', color: '#FF6B6B', advice: 'Рекомендуем увеличить калорийность питания' };
         if (bmi < 25) return { category: 'Нормальный вес', color: '#4CAF50', advice: 'Отличная форма! Продолжайте в том же духе' };
         if (bmi < 30) return { category: 'Избыточный вес', color: '#FFA500', advice: 'Рекомендуем больше физической активности' };
         return { category: 'Ожирение', color: '#FF6B6B', advice: 'Рекомендуем консультацию специалиста' };
     };
 
-    const AgeSelector = () => {
-        const ages = Array.from({ length: 83 }, (_, i) => i + 18);
+    // Улучшенный селектор с анимациями
+    const EnhancedSelector = ({ type, value, min, max, unit, onValueChange, getComment, getCompliment }) => {
+        const [isEditing, setIsEditing] = useState(false);
+        const [editValue, setEditValue] = useState(value.toString());
+        const scaleValue = useRef(new Animated.Value(1)).current;
+        const rotateValue = useRef(new Animated.Value(0)).current;
 
-        const scrollToAge = (age) => {
-            const index = ages.indexOf(age);
-            if (ageScrollRef.current && index !== -1) {
-                ageScrollRef.current.scrollTo({ y: index * 60, animated: true });
+        const values = Array.from({ length: max - min + 1 }, (_, i) => i + min);
+
+        const handleIncrement = () => {
+            if (value < max) {
+                const newValue = value + 1;
+                onValueChange(newValue);
+                animateButton();
             }
         };
 
+        const handleDecrement = () => {
+            if (value > min) {
+                const newValue = value - 1;
+                onValueChange(newValue);
+                animateButton();
+            }
+        };
+
+        const animateButton = () => {
+            Animated.sequence([
+                Animated.timing(scaleValue, {
+                    toValue: 1.2,
+                    duration: 100,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(scaleValue, {
+                    toValue: 1,
+                    duration: 100,
+                    useNativeDriver: true,
+                })
+            ]).start();
+        };
+
+        const handleEditPress = () => {
+            setIsEditing(true);
+            setEditValue(value.toString());
+        };
+
+        const handleEditSubmit = () => {
+            const numValue = parseInt(editValue);
+            if (numValue >= min && numValue <= max) {
+                onValueChange(numValue);
+                setIsEditing(false);
+            } else {
+                Alert.alert('Ошибка', `Введите значение от ${min} до ${max}`);
+            }
+        };
+
+        const handleEditCancel = () => {
+            setIsEditing(false);
+            setEditValue(value.toString());
+        };
+
+        const panResponder = PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onPanResponderMove: (evt, gestureState) => {
+                const sensitivity = 2;
+                const change = -gestureState.dy / sensitivity;
+                const newValue = Math.min(max, Math.max(min, value + Math.round(change)));
+                if (newValue !== value) {
+                    onValueChange(newValue);
+                }
+            },
+        });
+
+        const rotateInterpolate = rotateValue.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '360deg']
+        });
+
         return (
-            <View style={styles.selectorContainer}>
-                <View style={styles.pickerContainer}>
-                    <View style={styles.selectionIndicator} />
-                    <ScrollView
-                        ref={ageScrollRef}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={styles.pickerContent}
-                        snapToInterval={60}
-                        decelerationRate="fast"
+            <View style={styles.enhancedSelectorContainer}>
+                {/* Основной дисплей с жестами */}
+                <View style={styles.selectorDisplay} {...panResponder.panHandlers}>
+                    <Animated.View
+                        style={[
+                            styles.valueContainer,
+                            {
+                                transform: [
+                                    { scale: scaleValue },
+                                    { rotate: rotateInterpolate }
+                                ]
+                            }
+                        ]}
                     >
-                        {ages.map((age) => (
+                        {isEditing ? (
+                            <TextInput
+                                style={styles.valueInput}
+                                value={editValue}
+                                onChangeText={setEditValue}
+                                keyboardType="numeric"
+                                autoFocus
+                                maxLength={3}
+                                onSubmitEditing={handleEditSubmit}
+                                onBlur={handleEditCancel}
+                            />
+                        ) : (
+                            <TouchableOpacity onPress={handleEditPress} style={styles.valueDisplay}>
+                                <Text style={styles.valueText}>{value}</Text>
+                                <Text style={styles.unitText}>{unit}</Text>
+                            </TouchableOpacity>
+                        )}
+                    </Animated.View>
+
+                    <View style={styles.selectorControls}>
+                        <TouchableOpacity
+                            style={[styles.controlButton, value <= min && styles.controlButtonDisabled]}
+                            onPress={handleDecrement}
+                            disabled={value <= min}
+                        >
+                            <Ionicons name="remove" size={24} color={value <= min ? '#ccc' : 'white'} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.controlButton, value >= max && styles.controlButtonDisabled]}
+                            onPress={handleIncrement}
+                            disabled={value >= max}
+                        >
+                            <Ionicons name="add" size={24} color={value >= max ? '#ccc' : 'white'} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Ползунок для тонкой настройки */}
+                <View style={styles.sliderContainer}>
+                    <Text style={styles.sliderMin}>{min}{unit}</Text>
+                    <View style={styles.sliderTrack}>
+                        <View
+                            style={[
+                                styles.sliderProgress,
+                                { width: `${((value - min) / (max - min)) * 100}%` }
+                            ]}
+                        />
+                        <View
+                            style={[
+                                styles.sliderThumb,
+                                { left: `${((value - min) / (max - min)) * 100}%` }
+                            ]}
+                        />
+                    </View>
+                    <Text style={styles.sliderMax}>{max}{unit}</Text>
+                </View>
+
+                {/* Комментарий */}
+                <View style={[styles.recommendationBox, styles.enhancedRecommendationBox]}>
+                    <Ionicons
+                        name={type === 'age' ? 'sparkles' : type === 'weight' ? 'heart' : 'trending-up'}
+                        size={20}
+                        color={type === 'age' ? '#FFD700' : type === 'weight' ? '#FF6B6B' : '#4ECDC4'}
+                    />
+                    <Text style={styles.recommendationText}>
+                        {type === 'age' ? getComment(value) :
+                            type === 'weight' ? getCompliment(value) : getComment(value)}
+                    </Text>
+                </View>
+
+                {/* Быстрый выбор популярных значений */}
+                <View style={styles.quickSelectContainer}>
+                    <Text style={styles.quickSelectTitle}>Популярные значения:</Text>
+                    <View style={styles.quickSelectButtons}>
+                        {type === 'age' && [18, 25, 30, 35, 40].map(quickValue => (
                             <TouchableOpacity
-                                key={age}
+                                key={quickValue}
                                 style={[
-                                    styles.pickerItem,
-                                    userData.age === age && styles.pickerItemSelected
+                                    styles.quickSelectButton,
+                                    value === quickValue && styles.quickSelectButtonActive
                                 ]}
-                                onPress={() => {
-                                    updateUserDataState('age', age);
-                                    scrollToAge(age);
-                                }}
+                                onPress={() => onValueChange(quickValue)}
                             >
                                 <Text style={[
-                                    styles.pickerText,
-                                    userData.age === age && styles.pickerTextSelected
+                                    styles.quickSelectText,
+                                    value === quickValue && styles.quickSelectTextActive
                                 ]}>
-                                    {age}
+                                    {quickValue}
                                 </Text>
                             </TouchableOpacity>
                         ))}
-                    </ScrollView>
-                </View>
-
-                <View style={styles.recommendationBox}>
-                    <Ionicons name="sparkles" size={20} color="#FFD700" />
-                    <Text style={styles.recommendationText}>
-                        {getAgeRecommendation(userData.age)}
-                    </Text>
+                        {type === 'weight' && [50, 60, 70, 80, 90].map(quickValue => (
+                            <TouchableOpacity
+                                key={quickValue}
+                                style={[
+                                    styles.quickSelectButton,
+                                    value === quickValue && styles.quickSelectButtonActive
+                                ]}
+                                onPress={() => onValueChange(quickValue)}
+                            >
+                                <Text style={[
+                                    styles.quickSelectText,
+                                    value === quickValue && styles.quickSelectTextActive
+                                ]}>
+                                    {quickValue}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                        {type === 'height' && [160, 170, 175, 180, 185].map(quickValue => (
+                            <TouchableOpacity
+                                key={quickValue}
+                                style={[
+                                    styles.quickSelectButton,
+                                    value === quickValue && styles.quickSelectButtonActive
+                                ]}
+                                onPress={() => onValueChange(quickValue)}
+                            >
+                                <Text style={[
+                                    styles.quickSelectText,
+                                    value === quickValue && styles.quickSelectTextActive
+                                ]}>
+                                    {quickValue}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 </View>
             </View>
         );
     };
 
-    const WeightSelector = () => {
-        const weights = Array.from({ length: 121 }, (_, i) => i + 40);
+    const AgeSelector = () => (
+        <EnhancedSelector
+            type="age"
+            value={userData.age}
+            min={18}
+            max={100}
+            unit=" лет"
+            onValueChange={(value) => updateUserDataState('age', value)}
+            getComment={getAgeRecommendation}
+        />
+    );
 
-        const scrollToWeight = (weight) => {
-            const index = weights.indexOf(weight);
-            if (weightScrollRef.current && index !== -1) {
-                weightScrollRef.current.scrollTo({ y: index * 60, animated: true });
-            }
-        };
-
-        return (
-            <View style={styles.selectorContainer}>
-                <View style={styles.pickerContainer}>
-                    <View style={styles.selectionIndicator} />
-                    <ScrollView
-                        ref={weightScrollRef}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={styles.pickerContent}
-                        snapToInterval={60}
-                        decelerationRate="fast"
-                    >
-                        {weights.map((weight) => (
-                            <TouchableOpacity
-                                key={weight}
-                                style={[
-                                    styles.pickerItem,
-                                    userData.weight === weight && styles.pickerItemSelected
-                                ]}
-                                onPress={() => {
-                                    updateUserDataState('weight', weight);
-                                    scrollToWeight(weight);
-                                }}
-                            >
-                                <Text style={[
-                                    styles.pickerText,
-                                    userData.weight === weight && styles.pickerTextSelected
-                                ]}>
-                                    {weight}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-
-                <View style={[styles.recommendationBox, styles.complimentBox]}>
-                    <Ionicons name="heart" size={20} color="#FF6B6B" />
-                    <Text style={styles.recommendationText}>
-                        {getWeightCompliment(userData.weight)}
-                    </Text>
-                </View>
-            </View>
-        );
-    };
+    const WeightSelector = () => (
+        <EnhancedSelector
+            type="weight"
+            value={userData.weight}
+            min={40}
+            max={160}
+            unit=" кг"
+            onValueChange={(value) => updateUserDataState('weight', value)}
+            getCompliment={getWeightCompliment}
+        />
+    );
 
     const HeightSelector = () => {
-        const heights = Array.from({ length: 71 }, (_, i) => i + 140);
-
-        const scrollToHeight = (height) => {
-            const index = heights.indexOf(height);
-            if (heightScrollRef.current && index !== -1) {
-                heightScrollRef.current.scrollTo({ y: index * 60, animated: true });
-            }
-        };
+        const bmi = calculateBMI(userData.weight, userData.height);
+        const bmiCategory = getBMICategory(bmi);
 
         return (
             <View style={styles.selectorContainer}>
-                <View style={styles.pickerContainer}>
-                    <View style={styles.selectionIndicator} />
-                    <ScrollView
-                        ref={heightScrollRef}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={styles.pickerContent}
-                        snapToInterval={60}
-                        decelerationRate="fast"
-                    >
-                        {heights.map((height) => (
-                            <TouchableOpacity
-                                key={height}
-                                style={[
-                                    styles.pickerItem,
-                                    userData.height === height && styles.pickerItemSelected
-                                ]}
-                                onPress={() => {
-                                    updateUserDataState('height', height);
-                                    scrollToHeight(height);
-                                }}
-                            >
-                                <Text style={[
-                                    styles.pickerText,
-                                    userData.height === height && styles.pickerTextSelected
-                                ]}>
-                                    {height}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-
-                <View style={[styles.recommendationBox, styles.heightBox]}>
-                    <Ionicons name="trending-up" size={20} color="#4ECDC4" />
-                    <Text style={styles.recommendationText}>
-                        {getHeightComment(userData.height)}
-                    </Text>
-                </View>
+                <EnhancedSelector
+                    type="height"
+                    value={userData.height}
+                    min={140}
+                    max={210}
+                    unit=" см"
+                    onValueChange={(value) => updateUserDataState('height', value)}
+                    getComment={getHeightComment}
+                />
 
                 {/* Расчет ИМТ */}
                 {userData.weight > 0 && userData.height > 0 && (
-                    <View style={styles.bmiContainer}>
+                    <Animated.View
+                        style={[
+                            styles.bmiContainer,
+                            {
+                                opacity: fadeAnim,
+                                transform: [
+                                    { translateY: slideAnim },
+                                    { scale: scaleAnim }
+                                ]
+                            }
+                        ]}
+                    >
                         <Text style={styles.bmiTitle}>Индекс массы тела (ИМТ)</Text>
                         <Text style={styles.bmiValue}>
-                            {calculateBMI(userData.weight, userData.height)}
+                            {bmi}
                         </Text>
-                        {(() => {
-                            const bmi = calculateBMI(userData.weight, userData.height);
-                            const bmiCategory = getBMICategory(bmi);
-                            return (
-                                <>
-                                    <Text style={[styles.bmiCategory, { color: bmiCategory.color }]}>
-                                        {bmiCategory.category}
-                                    </Text>
-                                    <Text style={styles.bmiAdvice}>{bmiCategory.advice}</Text>
-                                </>
-                            );
-                        })()}
-                    </View>
+                        <Text style={[styles.bmiCategory, { color: bmiCategory.color }]}>
+                            {bmiCategory.category}
+                        </Text>
+                        <Text style={styles.bmiAdvice}>{bmiCategory.advice}</Text>
+                    </Animated.View>
                 )}
             </View>
         );
@@ -371,12 +521,13 @@ export default function CompleteOnboardingScreen() {
             updateUserData(userData);
 
             const tasks = userData.habits.map(habit => ({
-                id: habit.id,
+                id: Date.now().toString() + habit.id,
                 text: habit.name,
                 completed: false,
                 createdAt: new Date().toISOString(),
                 category: habit.category
             }));
+
             await AsyncStorage.setItem('userTasks', JSON.stringify(tasks));
             await AsyncStorage.setItem('userHabits', JSON.stringify(userData.habits));
             await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
@@ -387,11 +538,13 @@ export default function CompleteOnboardingScreen() {
             await AsyncStorage.setItem('moimoiHappiness', '100');
             await AsyncStorage.setItem('activeSkin', 'default');
             await AsyncStorage.setItem('ownedSkins', JSON.stringify(['default']));
+            await AsyncStorage.setItem('userStreak', '0');
+            await AsyncStorage.setItem('lastActiveDate', new Date().toDateString());
 
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Main' }],
-            });
+            console.log('Onboarding completed, navigating to Main...');
+
+            // Используем navigate вместо reset для корректного перехода
+            navigation.navigate('Main');
 
         } catch (error) {
             console.error('Error saving data:', error);
@@ -402,7 +555,10 @@ export default function CompleteOnboardingScreen() {
     const renderStepContent = () => {
         const animatedStyle = {
             opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
+            transform: [
+                { translateY: slideAnim },
+                { scale: scaleAnim }
+            ],
         };
 
         switch (currentStep) {
@@ -410,7 +566,10 @@ export default function CompleteOnboardingScreen() {
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <View style={styles.welcomeContainer}>
-                            <Ionicons name="sparkles" size={80} color="#FFD700" />
+                            <Animated.View style={{ transform: [{ scale: bounceAnim }] }}>
+                                <Ionicons name="sparkles" size={80} color="#FFD700" />\
+
+                            </Animated.View>
                             <Text style={styles.welcomeText}>
                                 Привет! Я твой MoiMoi - персональный помощник для развития привычек и достижения целей!
                             </Text>
@@ -420,7 +579,7 @@ export default function CompleteOnboardingScreen() {
 
             case 1:
                 return (
-                    <Animated.View style={[styles.stepContent, animatedStyle]}>
+                    <View style={[styles.stepContent]}>
                         <View style={styles.inputContainer}>
                             <Text style={styles.label}>Твое имя *</Text>
                             <TextInput
@@ -428,11 +587,11 @@ export default function CompleteOnboardingScreen() {
                                 placeholder="Например, Алексей"
                                 value={userData.name}
                                 onChangeText={(text) => updateUserDataState('name', text)}
-                                placeholderTextColor="rgba(255,255,255,0.6)"
+                                placeholderTextColor="rgba(255,255,255,1)"
                                 autoFocus
                             />
                         </View>
-                    </Animated.View>
+                    </View>
                 );
 
             case 2:
@@ -462,9 +621,10 @@ export default function CompleteOnboardingScreen() {
                         <ScrollView
                             style={styles.habitsContainer}
                             showsVerticalScrollIndicator={false}
+                            contentContainerStyle={styles.habitsScrollContent}
                         >
                             <View style={styles.habitsGrid}>
-                                {defaultHabits.map((habit) => (
+                                {habits.map((habit) => (
                                     <TouchableOpacity
                                         key={habit.id}
                                         style={[
@@ -472,6 +632,7 @@ export default function CompleteOnboardingScreen() {
                                             habit.selected && styles.habitCardSelected
                                         ]}
                                         onPress={() => toggleHabit(habit.id)}
+                                        activeOpacity={0.7}
                                     >
                                         <View style={[
                                             styles.habitIcon,
@@ -544,12 +705,6 @@ export default function CompleteOnboardingScreen() {
                 return (
                     <Animated.View style={[styles.stepContent, animatedStyle]}>
                         <View style={styles.finalStep}>
-                            <Ionicons name="checkmark-circle" size={80} color="#4CAF50" />
-                            <Text style={styles.finalTitle}>Великолепно! 🎉</Text>
-                            <Text style={styles.finalSubtitle}>
-                                {userData.name}, твой MoiMoi "{userData.moimoiName}" готов к приключениям!
-                            </Text>
-
                             <View style={styles.summaryBox}>
                                 <Text style={styles.summaryTitle}>Твой профиль:</Text>
                                 <View style={styles.summaryItem}>
@@ -744,49 +899,121 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.1)',
         color: 'white',
     },
-    selectorContainer: {
+    // Улучшенные стили для селекторов
+    enhancedSelectorContainer: {
         alignItems: 'center',
+        width: '100%',
     },
-    pickerContainer: {
-        height: 200,
-        width: 120,
-        position: 'relative',
-        marginBottom: 30,
+    selectorDisplay: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: 25,
+        padding: 20,
+        marginBottom: 25,
+        width: '100%',
+        borderWidth: 2,
+        borderColor: 'rgba(255,255,255,0.2)',
     },
-    pickerContent: {
-        paddingVertical: 80,
+    valueContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    selectionIndicator: {
-        position: 'absolute',
-        top: '50%',
-        left: 0,
-        right: 0,
-        height: 60,
+    valueDisplay: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    valueInput: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: 'white',
+        textAlign: 'center',
         backgroundColor: 'rgba(255,255,255,0.2)',
         borderRadius: 12,
-        marginTop: -30,
-        borderWidth: 2,
-        borderColor: 'rgba(255,255,255,0.5)',
+        padding: 10,
+        minWidth: 100,
     },
-    pickerItem: {
-        height: 60,
+    valueText: {
+        fontSize: 48,
+        fontWeight: 'bold',
+        color: 'white',
+        textShadowColor: 'rgba(0,0,0,0.3)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 3,
+    },
+    unitText: {
+        fontSize: 16,
+        color: 'rgba(255,255,255,0.7)',
+        marginTop: 5,
+    },
+    selectorControls: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+    controlButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'rgba(255,255,255,0.2)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginVertical: 2,
+        borderWidth: 2,
+        borderColor: 'rgba(255,255,255,0.3)',
     },
-    pickerItemSelected: {
+    controlButtonDisabled: {
+        opacity: 0.3,
+    },
+    sliderContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: 25,
+        paddingHorizontal: 10,
+    },
+    sliderMin: {
+        color: 'rgba(255,255,255,0.7)',
+        fontSize: 14,
+        width: 40,
+    },
+    sliderMax: {
+        color: 'rgba(255,255,255,0.7)',
+        fontSize: 14,
+        width: 40,
+        textAlign: 'right',
+    },
+    sliderTrack: {
+        flex: 1,
+        height: 6,
         backgroundColor: 'rgba(255,255,255,0.3)',
-        borderRadius: 8,
+        borderRadius: 3,
+        marginHorizontal: 10,
+        position: 'relative',
     },
-    pickerText: {
-        fontSize: 20,
-        color: 'rgba(255,255,255,0.6)',
-        fontWeight: '500',
+    sliderProgress: {
+        height: '100%',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 3,
+        position: 'absolute',
     },
-    pickerTextSelected: {
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: 24,
+    sliderThumb: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: '#FFFFFF',
+        position: 'absolute',
+        top: -7,
+        marginLeft: -10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+    enhancedRecommendationBox: {
+        width: '100%',
+        marginBottom: 25,
     },
     recommendationBox: {
         flexDirection: 'row',
@@ -796,16 +1023,6 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         marginBottom: 20,
     },
-    complimentBox: {
-        backgroundColor: 'rgba(255,107,107,0.2)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,107,107,0.3)',
-    },
-    heightBox: {
-        backgroundColor: 'rgba(78,205,196,0.2)',
-        borderWidth: 1,
-        borderColor: 'rgba(78,205,196,0.3)',
-    },
     recommendationText: {
         color: 'white',
         fontSize: 16,
@@ -813,12 +1030,50 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         flex: 1,
     },
+    quickSelectContainer: {
+        width: '100%',
+        marginBottom: 20,
+    },
+    quickSelectTitle: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 14,
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    quickSelectButtons: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    quickSelectButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.2)',
+    },
+    quickSelectButtonActive: {
+        backgroundColor: 'rgba(255,255,255,0.3)',
+        borderColor: 'rgba(255,255,255,0.5)',
+    },
+    quickSelectText: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    quickSelectTextActive: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
     bmiContainer: {
         backgroundColor: 'rgba(255,255,255,0.15)',
         padding: 20,
         borderRadius: 16,
         alignItems: 'center',
         marginTop: 20,
+        width: '100%',
     },
     bmiTitle: {
         color: 'white',
@@ -846,6 +1101,9 @@ const styles = StyleSheet.create({
     habitsContainer: {
         flex: 1,
         marginBottom: 20,
+    },
+    habitsScrollContent: {
+        paddingBottom: 20,
     },
     habitsGrid: {
         flexDirection: 'row',

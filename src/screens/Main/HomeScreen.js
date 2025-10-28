@@ -12,6 +12,7 @@ import {
     Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../context/ThemeContext';
@@ -20,6 +21,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function HomeScreen() {
     const { colors, themeColor, userData } = useTheme();
+    const navigation = useNavigation();
     const [tasks, setTasks] = useState([]);
     const [showAddTask, setShowAddTask] = useState(false);
     const [newTask, setNewTask] = useState('');
@@ -264,11 +266,7 @@ export default function HomeScreen() {
                 style={[
                     styles.celebrationOverlay,
                     {
-                        opacity: fadeAnim,
-                        transform: [
-                            { scale: scaleAnim },
-                            { translateY: slideAnim }
-                        ]
+                        opacity: fadeAnim
                     }
                 ]}
             >
@@ -324,17 +322,23 @@ export default function HomeScreen() {
     const completedTasks = tasks.filter(task => task.completed).length;
 
     const containerStyle = { backgroundColor: colors.background };
-    const headerStyle = { backgroundColor: themeColor };
     const tasksContainerStyle = { backgroundColor: colors.card, borderTopLeftRadius: 30, borderTopRightRadius: 30 };
     const taskItemStyle = { backgroundColor: colors.background, borderLeftColor: themeColor };
     const modalContentStyle = { backgroundColor: colors.card };
 
     return (
         <View style={[styles.container, containerStyle]}>
-            {/* Header */}
-            <View style={[styles.header, headerStyle]}>
-                <Text style={styles.welcomeText}>Добро пожаловать, {userData?.name || 'Пользователь'}! 👋</Text>
-                <Text style={styles.moimoiText}>MoiMoi</Text>
+            {/* Top Bar with Chat Button */}
+            <View style={[styles.topBar, { backgroundColor: themeColor }]}>
+                <View style={styles.topBarContent}>
+                    <Text style={styles.moimoiText}>MoiMoi</Text>
+                    <TouchableOpacity
+                        style={styles.chatButton}
+                        onPress={() => navigation.navigate('Chat')}
+                    >
+                        <Ionicons name="chatbubble-ellipses-outline" size={24} color="white" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* MoiMoi Animation Section */}
@@ -484,24 +488,27 @@ export default function HomeScreen() {
     );
 }
 
-// Стили остаются прежними, но добавляются динамические цвета через props
 const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    header: {
-        padding: 20,
+    topBar: {
+        paddingTop: 60,
+        paddingBottom: 20,
+        paddingHorizontal: 20,
     },
-    welcomeText: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: '500',
+    topBarContent: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     moimoiText: {
         color: 'white',
         fontSize: 32,
         fontWeight: 'bold',
-        marginTop: 5,
+    },
+    chatButton: {
+        padding: 8,
     },
     moimoiContainer: {
         alignItems: 'center',
@@ -713,7 +720,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(255, 255, 255, 1)',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 1000,
@@ -722,16 +729,11 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         padding: 30,
         alignItems: 'center',
-        margin: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 10,
+        margin: 20
     },
     celebrationAnimation: {
-        width: 150,
-        height: 150,
+        width: 250,
+        height: 250,
         marginBottom: 20,
     },
     celebrationTitle: {

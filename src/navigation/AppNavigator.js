@@ -13,6 +13,7 @@ import ChatScreen from '../screens/Main/ChatScreen';
 import CalendarScreen from '../screens/Main/CalendarScreen';
 import SettingsScreen from '../screens/Main/SettingsScreen';
 import ShopScreen from '../screens/Main/ShopScreen';
+import HabitScreen from '../screens/Main/HabitScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -44,6 +45,36 @@ function ProfileStack() {
                 }}
             />
         </ProfileStackNavigator.Navigator>
+    );
+}
+
+// Создаем стек для главного приложения с чатом
+const MainStackNavigator = createNativeStackNavigator();
+
+function MainStack() {
+    const { colors, themeColor } = useTheme();
+
+    return (
+        <MainStackNavigator.Navigator>
+            <MainStackNavigator.Screen
+                name="MainTabs"
+                component={MainTabs}
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <MainStackNavigator.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{
+                    title: 'Чат с MoiMoi',
+                    headerStyle: {
+                        backgroundColor: themeColor,
+                    },
+                    headerTintColor: 'white',
+                }}
+            />
+        </MainStackNavigator.Navigator>
     );
 }
 
@@ -104,13 +135,13 @@ function MainTabs() {
                 }}
             />
             <Tab.Screen
-                name="Chat"
-                component={ChatScreen}
+                name="Habits"
+                component={HabitScreen}
                 options={{
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="chatbubble-outline" size={size} color={color} />
+                        <Ionicons name="leaf-outline" size={size} color={color} />
                     ),
-                    title: 'Чат',
+                    title: 'Привычки',
                 }}
             />
             <Tab.Screen
@@ -143,13 +174,6 @@ function OnboardingStack() {
                     animation: 'fade',
                 }}
             />
-            <Stack.Screen
-                name="MainTabs"
-                component={MainTabs}
-                options={{
-                    animation: 'slide_from_bottom',
-                }}
-            />
         </Stack.Navigator>
     );
 }
@@ -173,6 +197,18 @@ export default function AppNavigator() {
         }
     };
 
+    // Слушаем изменения в AsyncStorage
+    useEffect(() => {
+        const checkOnboardingChange = async () => {
+            const onboardingCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
+            setHasCompletedOnboarding(onboardingCompleted === 'true');
+        };
+
+        // Проверяем каждую секунду (можно оптимизировать)
+        const interval = setInterval(checkOnboardingChange, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
     if (!appReady) {
         return null;
     }
@@ -191,7 +227,7 @@ export default function AppNavigator() {
             ) : (
                 <Stack.Screen
                     name="Main"
-                    component={MainTabs}
+                    component={MainStack}
                 />
             )}
         </Stack.Navigator>
